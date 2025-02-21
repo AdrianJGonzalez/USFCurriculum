@@ -166,11 +166,36 @@ def save_courses():
         with open("courses.py", "w") as f:
             f.write("courses = " + json.dumps(courses.courses, indent=4))
         
-        print("Courses successfully saved to courses.py")
-        messagebox.showinfo("Success", "Courses saved successfully!")
+        # Ask the user if they want to clear the fields after saving
+        response = messagebox.askyesno("Success", "Course saved successfully!\nDo you want to clear the fields?")
+        if response:
+            clear_fields()
+        else:
+            messagebox.showinfo("Saved", "Course saved successfully!")
+            
     except Exception as e:
         print(f"Error saving courses: {e}")
         messagebox.showerror("Error", f"Failed to save courses: {e}")
+
+# -------------------------------
+# Clear Function: Resets all course fields and nested groups
+# -------------------------------
+def clear_fields():
+    global prereq_top_group, coreq_top_group  # Declare globals at the start
+    # Clear basic course fields
+    dept_entry.delete(0, tk.END)
+    code_entry.delete(0, tk.END)
+    name_entry.delete(0, tk.END)
+    desc_entry.delete("1.0", tk.END)
+    credit_entry.delete(0, tk.END)
+    
+    # Destroy and recreate the prerequisite and corequisite groups
+    prereq_top_group.destroy()
+    coreq_top_group.destroy()
+    prereq_top_group = GroupFrame(prereq_frame_main, is_top_level=True, bg_color="white")
+    prereq_top_group.pack(fill=tk.BOTH, expand=True)
+    coreq_top_group = GroupFrame(coreq_frame_main, is_top_level=True, bg_color="lightgreen")
+    coreq_top_group.pack(fill=tk.BOTH, expand=True)
 
 # -------------------------------
 # GUI Setup
@@ -221,3 +246,4 @@ tk.Button(root, text="Save Course", command=save_courses).pack(pady=10)
 tk.Button(root, text="Exit", command=root.quit).pack(pady=5)
 
 root.mainloop()
+
