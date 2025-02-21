@@ -1,3 +1,4 @@
+#This module is a test for displaying data from the "courses.py" file. 
 import tkinter as tk
 from tkinter import scrolledtext
 import courses  # This module should define the courses dictionary
