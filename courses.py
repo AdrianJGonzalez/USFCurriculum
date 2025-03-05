@@ -155,7 +155,7 @@ courses = {
                         {
                             "Department": "EGN",
                             "Course Code": "3373",
-                            "Grade": "N/A"
+                            "Grade": "C"
                         }
                     ]
                 },
@@ -208,36 +208,23 @@ courses = {
                 "Credit Hours": 1
             },
             "4102": {
-                "Class Full Name": "Signals and Systems",
-                "Description": "Provides further study in the analysis of signals and linear systems. Includes time and frequency domain points of view such as Laplace and Fourier analysis as well as convolution.",
+                "Class Full Name": "Wireless Commiunication Systems Laboratory",
+                "Description": "The course provides an extensive hands-on introduction to digital and wireless communication systems; involving testing, modeling, simulation, and measurements of the performance of digital communication systems at both sub-system and system levels. Wireless channel and its effect on the system will be reviewed. Ways to counteract the channel and radio impairments will be practically shown.",
                 "Prereqs": {
                     "AND": [
                         {
-                            "Department": "EGN",
-                            "Course Code": "3420",
+                            "Department": "EEL",
+                            "Course Code": "4512C",
                             "Grade": "C"
                         },
-                        {
-                            "Department": "EGN",
-                            "Course Code": "3374",
-                            "Grade": "C"
-                        }
-                    ]
-                },
-                "Coreqs": {
-                    "AND": [
                         {
                             "Department": "EEL",
-                            "Course Code": "3163C",
-                            "Grade": "C"
-                        },
-                        {
-                            "Department": "EGN",
-                            "Course Code": "3374",
+                            "Course Code": "4423C",
                             "Grade": "C"
                         }
                     ]
                 },
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "3100": {
@@ -247,48 +234,33 @@ courses = {
                     "AND": [
                         {
                             "Department": "EGN",
-                            "Course Code" = "3420",
+                            "Course Code": "3420",
                             "Grade": "C"
                         },
                         {
-                            "Departnent" : "EGN"
-                            "Course Code" : "3374"
-                            "Grade" : "B"
+                            "Departnent": "EGN",
+                            "Course Code": "3374",
+                            "Grade": "B"
                         }
                     ]
                 },
                 "Coreqs": "N/A",
                 "Credit Hours": 3
             },
-            "3115L" : {
-                "Class Full Name": "Laboratory I",
-                "Description": "Basic circuit theory applications; computer-aided design tools, electrical measurement techniques.",
-                "Prereqs": {
-                    "AND": [
-                        {
-                            "Department" : "EGN",
-                            "Course Code" = "3373",
-                            "Grade" = "C"
-                        }
-                    ]
-                },
-                "Coreqs": "N/A",
-                "Credit Hours": 1
-            },
-            "3116L" : {
+            "3116L": {
                 "Class Full Name": "Laboratory II",
                 "Description": "This larboratory is designed to introduce electrical engineering students to the design, building and testing of active electronic networks. Computer Aided Design tools and computer data acquistition strategies are examined in greater detail.",
                 "Prereqs": {
                     "AND": [
                         {
-                            "Department" : "EEE",
-                            "Course Code" : "3302",
-                            "Grade" : "C"
+                            "Department": "EEE",
+                            "Course Code": "3302",
+                            "Grade": "C"
                         },
                         {
-                            "Department" : "EEL"
-                            "Course Code" : "EEL"
-                            "Grade" : "3115L"
+                            "Department": "EEL",
+                            "Course Code": "EEL",
+                            "Grade": "3115L"
                         }
                     ]
                 },
@@ -324,7 +296,7 @@ courses = {
                             "Department": "EGN",
                             "Course Code": "3374",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
                 "Coreqs": {
@@ -333,7 +305,7 @@ courses = {
                             "Department": "EGN",
                             "Course Code": "3375",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
                 "Credit Hours": 1
@@ -347,7 +319,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4241",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
                 "Coreqs": "N/A",
@@ -370,7 +342,7 @@ courses = {
                         }
                     ]
                 },
-                "Coreqs": "N/A"
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4241": {
@@ -423,7 +395,7 @@ courses = {
                         }
                     ]
                 },
-                "Coreqs": "N/A"
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4251": {
@@ -443,7 +415,7 @@ courses = {
                         }
                     ]
                 },
-                "Coreqs":"N/A",
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4421": {
@@ -455,10 +427,10 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4423C",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
-                "Coreqs":"N/A",
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4422": {
@@ -470,10 +442,10 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4421",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
-                "Coreqs":"N/A",
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4423C": {
@@ -485,8 +457,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "3472C",
                             "Grade": "C"
-                        },
-                        
+                        }
                     ]
                 },
                 "Coreqs": "N/A",
@@ -509,7 +480,7 @@ courses = {
                         }
                     ]
                 },
-                "Coreqs":"N/A",
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4512C": {
@@ -520,26 +491,6 @@ courses = {
                         {
                             "Department": "EEL",
                             "Course Code": "4102",
-                            "Grade": "C"
-                        },
-                    ]
-                },
-                "Coreqs": "N/A",
-                "Credit Hours": 3
-            },
-            "4102": {
-                "Class Full Name": "Wireless Commiunication Systems Laboratory",
-                "Description": "The course provides an extensive hands-on introduction to digital and wireless communication systems; involving testing, modeling, simulation, and measurements of the performance of digital communication systems at both sub-system and system levels. Wireless channel and its effect on the system will be reviewed. Ways to counteract the channel and radio impairments will be practically shown.",
-                "Prereqs": {
-                    "AND": [
-                        {
-                            "Department": "EEL",
-                            "Course Code": "4512C",
-                            "Grade": "C"
-                        },
-                        {
-                            "Department": "EEL",
-                            "Course Code": "4423C",
                             "Grade": "C"
                         }
                     ]
@@ -556,7 +507,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4423C",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
                 "Coreqs": "N/A",
@@ -571,17 +522,18 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "3472C",
                             "Grade": "C"
-                        },{
+                        },
+                        {
                             "AND": [
                                 {
-                                    "Department" : "PHY",
-                                    "Course Code":"2049",
-                                    "Grade":"C"
+                                    "Department": "PHY",
+                                    "Course Code": "2049",
+                                    "Grade": "C"
                                 },
                                 {
-                                    "Department":"PHY",
-                                    "Course Code":"2049L",
-                                    "Grade":"C"
+                                    "Department": "PHY",
+                                    "Course Code": "2049L",
+                                    "Grade": "C"
                                 }
                             ]
                         }
@@ -600,7 +552,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4657",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
                 "Credit Hours": 1
@@ -614,8 +566,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4657",
                             "Grade": "C"
-                        },
-
+                        }
                     ]
                 },
                 "Coreqs": "N/A",
@@ -671,7 +622,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4744",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
                 "Credit Hours": 1
@@ -685,7 +636,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "3705",
                             "Grade": "C-"
-                        },
+                        }
                     ]
                 },
                 "Coreqs": "N/A",
@@ -700,7 +651,7 @@ courses = {
                             "Department": "EEL",
                             "Course Code": "4102",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
                 "Coreqs": "N/A",
@@ -715,12 +666,27 @@ courses = {
                             "Department": "EGEELN",
                             "Course Code": "2161",
                             "Grade": "C"
-                        },
+                        }
                     ]
                 },
-                "Coreqs":"N/A",
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
+            "4914": {
+                "Class Full Name": "EE Design One",
+                "Description": "An introduction of engineering design with applications specific to practical engineering problems. Included are discussion of real-world issues as economics, safety, ethics and the environment.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3373",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
         },
         "EGN": {
             "3000": {
@@ -767,6 +733,49 @@ courses = {
                 "Description": "Presents basic economic models used to evaluate engineering project investments with an understanding of the implications of human and cultural diversity on financial decisions through lectures, problem solving, and critical writing.",
                 "Prereqs": "N/A",
                 "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "3375": {
+                "Class Full Name": "Electromechanical Systems",
+                "Description": "Analysis of electromechanical device performance: transformers, transducers, DC motors and generators, AC motors and alternators.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3374",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "3374": {
+                "Class Full Name": "Introduction to Electrical Systems",
+                "Description": "A second course in linear passive circuits (following EGN 3373). An extension of the physical principles and models, AC/DC steady-state, transient analysis and power analysis techniques.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3373",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": {
+                    "OR": [
+                        {
+                            "Department": "MAP",
+                            "Course Code": "2302",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3433",
+                            "Grade": "C"
+                        }
+                    ]
+                },
                 "Credit Hours": 3
             }
         },
@@ -830,6 +839,119 @@ courses = {
                         }
                     ]
                 },
+                "Credit Hours": 3
+            },
+            "4301": {
+                "Class Full Name": "Electronics II",
+                "Description": "Provides further study in electronic circuits. Includes feedback and frequency response techniques in amplifier design.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "3302",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4314C": {
+                "Class Full Name": "Integrated Circuit Technology",
+                "Description": "Physics and Chemistry of integrated circuit and discrete device fabrication, materials limitations, processing schemes, failure and yield analysis. A laboratory is integral to the course.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "4351C",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4315C": {
+                "Class Full Name": "Semiconductor Devices",
+                "Description": "An introduction to the fundamentals of semiconductor materials and semiconductor device operation.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "3394",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4359": {
+                "Class Full Name": "Analog CMOS VLSI Design",
+                "Description": "This course covers Analog CMOS/VLSI design with topics ranging from devices to circuits and their simulations, and basics of layout design and their simulations.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "3302",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "4301",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Credit Hours": 3
+            },
+            "4410": {
+                "Class Full Name": "System on a Chip",
+                "Description": "This course addresses the newly emerging area of \u201csystem on a chip\u201d, which is envisioned as the next revolution beyond integrated circuits. Students will learn the principles and techniques that are expected to apply to this future technology.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "3373",
+                            "Grade": "N/A"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4774": {
+                "Class Full Name": "Data Analytics",
+                "Description": "This course aims to teach the fundamentals of Machine Learning and Statistical Data Analysis. It will cover the related theory in statistical inference and learning, practical Machine Learning algorithms, and several applications in various fields.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3443",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4530": {
+                "Class Full Name": "Flexible Electronics and Thin-Film Solar Cells",
+                "Description": "The course focuses on materials science for designing and characterizing flexible electronics and thin-film solar cells.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "3394",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             }
         }
