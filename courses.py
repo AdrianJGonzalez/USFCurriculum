@@ -247,12 +247,12 @@ courses = {
                     "AND": [
                         {
                             "Department": "EGN",
-                            "Course Code" = "3420",
+                            "Course Code": "3420",
                             "Grade": "C"
                         },
                         {
-                            "Departnent" : "EGN"
-                            "Course Code" : "3374"
+                            "Departnent" : "EGN",
+                            "Course Code" : "3374",
                             "Grade" : "B"
                         }
                     ]
@@ -267,8 +267,8 @@ courses = {
                     "AND": [
                         {
                             "Department" : "EGN",
-                            "Course Code" = "3373",
-                            "Grade" = "C"
+                            "Course Code": "3373",
+                            "Grade" : "C"
                         }
                     ]
                 },
@@ -286,8 +286,8 @@ courses = {
                             "Grade" : "C"
                         },
                         {
-                            "Department" : "EEL"
-                            "Course Code" : "EEL"
+                            "Department" : "EEL",
+                            "Course Code" : "EEL",
                             "Grade" : "3115L"
                         }
                     ]
@@ -370,7 +370,7 @@ courses = {
                         }
                     ]
                 },
-                "Coreqs": "N/A"
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4241": {
@@ -423,7 +423,7 @@ courses = {
                         }
                     ]
                 },
-                "Coreqs": "N/A"
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             },
             "4251": {
