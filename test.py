@@ -2,7 +2,6 @@
 import tkinter as tk
 from tkinter import scrolledtext
 import courses  # This module should define the courses dictionary
-import json
 
 def decode_requirement(req, parent_op=None, top_level=False):
     """
@@ -13,32 +12,33 @@ def decode_requirement(req, parent_op=None, top_level=False):
     "Course Code", "Grade"), it returns a string in the form:
     "DEPT CODE (min grade GRADE)".
     
-    If the current group is nested and its parent's operator is "OR", the result is enclosed in square brackets.
+    Now, every OR group is enclosed in square brackets. Additionally, an AND group that is 
+    nested inside an OR group is also enclosed in square brackets.
     """
     if isinstance(req, dict):
         keys = list(req.keys())
-        # Check if this dict represents a group with an operator
+        # Check if this dict represents a group with an operator.
         if len(keys) == 1 and keys[0] in ["AND", "OR"]:
             op = keys[0]
             children = req[op]
-            # Process each child; for children, pass the current operator as parent_op.
+            # Process each child; pass the current operator as parent_op.
             sub_strings = [decode_requirement(child, parent_op=op, top_level=False) for child in children]
-            # Filter out any empty strings
+            # Filter out any empty strings.
             sub_strings = [s for s in sub_strings if s]
             # Join using the operator.
             joined = f" {op} ".join(sub_strings)
-            # If this group is nested inside an OR group, enclose it in square brackets.
-            if not top_level and parent_op == "OR":
+            # Always enclose OR groups in brackets.
+            # Also, if an AND group is nested inside an OR group, enclose it.
+            if op == "OR" or (parent_op == "OR" and op == "AND"):
                 return f"[{joined}]"
             else:
                 return joined
         else:
-            # It's a leaf requirement
+            # It's a leaf requirement.
             dept = req.get("Department", "")
             code = req.get("Course Code", "")
             grade = req.get("Grade", "")
             if dept or code or grade:
-                # Format each course; if a grade is provided, include it.
                 if grade:
                     return f"{dept} {code} (min grade {grade})"
                 else:
@@ -46,7 +46,7 @@ def decode_requirement(req, parent_op=None, top_level=False):
             else:
                 return ""
     elif isinstance(req, list):
-        # If req is a list, join the items (not typical in our structure)
+        # If req is a list, join the items.
         sub_strings = [decode_requirement(item, parent_op=parent_op, top_level=top_level) for item in req]
         return " ".join(sub_strings)
     else:
