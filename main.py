@@ -48,7 +48,6 @@ clock = pygame.time.Clock()
 running = True
 
 while running:
-    # Reset scroll offset at the start of each loop if needed
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -57,7 +56,6 @@ while running:
             WINDOW_WIDTH, WINDOW_HEIGHT = event.w, event.h
             screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
 
-        # If the advising_main page is active, pass KEYDOWN events for search input
         elif event.type == pygame.KEYDOWN:
             if active_page == "advising_main":
                 advising_main.process_search_event(event)
@@ -67,16 +65,22 @@ while running:
                 scroll_offset -= event.y * 30  # Adjust scroll speed
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 4:  # wheel up
+            if event.button == 4:  # Scroll up
                 if active_page == "advising_main":
                     scroll_offset -= 30
                 continue
-            elif event.button == 5:  # wheel down
+            elif event.button == 5:  # Scroll down
                 if active_page == "advising_main":
                     scroll_offset += 30
                 continue
             else:
                 mouse_pos = pygame.mouse.get_pos()
+
+                # Handle transcript button inside main area
+                if active_page == "transcript":
+                    transcript.handle_event(event)
+
+                # Sidebar buttons
                 for key in buttons:
                     if buttons[key].collidepoint(mouse_pos):
                         active_page = key
@@ -106,7 +110,7 @@ while running:
     pygame.draw.rect(screen, WHITE, right_area_rect)
     pygame.draw.rect(screen, BLACK, right_area_rect, 2)
 
-    # Render active page content. The advising_main page now handles its own search functionality.
+    # Render active page content
     render_functions = {
         "welcome": welcome.render,
         "curriculum": curriculum.render,
@@ -122,3 +126,4 @@ while running:
 
 pygame.quit()
 sys.exit()
+
