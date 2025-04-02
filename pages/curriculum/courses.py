@@ -193,7 +193,7 @@ courses = {
                             "Grade": "C"
                         },
                         {
-                            "Departnent": "EGN",
+                            "Department": "EGN",
                             "Course Code": "3374",
                             "Grade": "B"
                         }
