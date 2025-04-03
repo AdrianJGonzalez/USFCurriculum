@@ -1,6 +1,6 @@
 #This is in development and is not currently implemented to the larger application.
 #Things that remain to be done on this test
-#1. Add some vertical scrolling so that the user can read further down with more courses
+#1. Add some vertical scrolling so that the user can read further down with more courses - done 
 #2. Make the boxes everso smaller in height
 #3. Add the Prereqs and Coreq Arrows to the courses. (Make sure the arrows don't touch!)
 #4. Give error window when adding duplicate classes
@@ -20,6 +20,8 @@ import pygame
 import sys
 from pygame.locals import *
 from courses import courses
+import json
+import os
 
 pygame.init()
 
@@ -82,6 +84,7 @@ class Column:
         self.year_input = ""
         self.boxes = [Box()]
         self.year_rect = pygame.Rect(x + 110, 10, 60, 30)
+        self.scroll_y = 0
 
     def draw(self, screen, offset):
         self.x = self.base_x - offset
@@ -93,7 +96,7 @@ class Column:
         screen.blit(FONT.render(self.year_input, True, BLACK), (self.year_rect.x+5, self.year_rect.y+5))
 
         for i, box in enumerate(self.boxes):
-            y = 60 + i * 120  # 110 height + 10px padding
+            y = 60 + i * 100  # 110 height + 10px padding
             if y + 80 < COLUMN_HEIGHT:
                 box.draw(screen, self.x + 10, y)
 
@@ -114,7 +117,12 @@ class Column:
         self.boxes = [box for box in self.boxes if box.course or box == self.boxes[-1]]
         if not self.boxes or self.boxes[-1].course:
             self.boxes.append(Box())
-
+        
+        if event.type == pygame.MOUSEWHEEL:
+            if 0 <= pygame.mouse.get_pos()[0] - self.x <= 220:
+                self.scroll_y -= event.y * 30
+                self.scroll_y = max(0, self.scroll_y)
+            
 class Box:
     def __init__(self):
         self.course = None
@@ -194,6 +202,55 @@ class Box:
             elif self.add_btn.collidepoint(event.pos):
                 open_course_selector(self)
 
+def get_course_name(course_id):
+    try:
+        dept, code = course_id.split()
+        for school in courses.values():
+            if dept in school and code in school[dept]:
+                return school[dept][code].get("Class Full Name", "Unknown")
+    except:
+        pass
+    return "Unknown"
+
+def autofill_courses_into_flowchart(course_ids):
+    global columns
+
+    # Clear current columns
+    columns = []
+
+    # Define semester cycle and starting year
+    semesters = ["Fall", "Spring", "Summer"]
+    current_year = 2024
+    semester_index = 0
+
+    for i, course_id in enumerate(course_ids):
+        # Create a new column if needed
+        if len(columns) <= i:
+            new_col = Column(20 + i * 440)
+            new_col.semester_dropdown.selected = semesters[semester_index % 3]
+            new_col.year_input = str(current_year)
+            columns.append(new_col)
+
+            if semesters[semester_index % 3] == "Summer":
+                current_year += 1
+            semester_index += 1
+
+        # Assign course to the first box in the column
+        columns[i].boxes[0].course = course_id + ": " + get_course_name(course_id)
+
+def load_completed_courses():
+    if not os.path.exists("completed_courses.json"):
+        return []
+
+    with open("completed_courses.json", "r") as f:
+        data = json.load(f)
+
+    # Extract just the "DEPT CODE" part from "DEPT CODE - Course Name"
+    course_ids = []
+    for entry in data:
+        if " - " in entry:
+            course_ids.append(entry.split(" - ")[0].strip())
+    return course_ids
 
 def open_course_selector(box):
     search_text = ""
@@ -204,6 +261,14 @@ def open_course_selector(box):
     dept_dropdown = Dropdown(220, 120, ["All"] + departments, width=120, selected="All")
 
     close_btn = pygame.Rect(950, 110, 40, 30)
+    SCROLL_AREA_HEIGHT = 500
+    SCROLL_BAR_X = 980
+    SCROLL_BAR_Y = 170
+    SCROLL_BAR_WIDTH = 10
+    SCROLL_HANDLE_HEIGHT = 60
+
+    is_dragging_scrollbar = False
+    scroll_drag_offset_y = 0
 
     while running:
         SCREEN.fill(WHITE)
@@ -256,6 +321,21 @@ def open_course_selector(box):
         # Draw dropdown options on top (if expanded)
         if dept_dropdown.expanded:
             dept_dropdown.draw(SCREEN)
+        # Scrollbar background
+        scrollbar_rect = pygame.Rect(SCROLL_BAR_X, SCROLL_BAR_Y, SCROLL_BAR_WIDTH, SCROLL_AREA_HEIGHT)
+        pygame.draw.rect(SCREEN, LIGHT_GRAY, scrollbar_rect)
+        pygame.draw.rect(SCREEN, BLACK, scrollbar_rect, 1)
+
+        # Scroll handle position
+        total_courses = len(filtered)
+        max_offset = max(0, total_courses - 18)
+        scroll_ratio = scroll_offset / max_offset if max_offset > 0 else 0
+        handle_height = max(40, int(SCROLL_AREA_HEIGHT * min(1, 18 / total_courses)))
+        handle_y = SCROLL_BAR_Y + int((SCROLL_AREA_HEIGHT - handle_height) * scroll_ratio)
+
+        scroll_handle_rect = pygame.Rect(SCROLL_BAR_X, handle_y, SCROLL_BAR_WIDTH, handle_height)
+        pygame.draw.rect(SCREEN, GRAY, scroll_handle_rect)
+        pygame.draw.rect(SCREEN, BLACK, scroll_handle_rect, 1)
 
         pygame.display.flip()
 
@@ -263,11 +343,11 @@ def open_course_selector(box):
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == MOUSEWHEEL:
-                scroll_offset -= event.y
-                scroll_offset = max(0, min(scroll_offset, max(0, len(filtered) - 18)))
             elif event.type == MOUSEBUTTONDOWN and event.button == 1:
-                if close_btn.collidepoint(event.pos):
+                if scroll_handle_rect.collidepoint(event.pos):
+                    is_dragging_scrollbar = True
+                    scroll_drag_offset_y = event.pos[1] - scroll_handle_rect.y
+                elif close_btn.collidepoint(event.pos):
                     running = False
                 elif dept_dropdown.handle_event(event):
                     continue
@@ -276,6 +356,19 @@ def open_course_selector(box):
                         if rect.collidepoint(event.pos):
                             box.course = course
                             running = False
+            elif event.type == MOUSEBUTTONUP:
+                is_dragging_scrollbar = False
+
+            elif event.type == MOUSEMOTION and is_dragging_scrollbar:
+                mouse_y = event.pos[1]
+                new_handle_y = mouse_y - scroll_drag_offset_y
+                new_handle_y = max(SCROLL_BAR_Y, min(SCROLL_BAR_Y + SCROLL_AREA_HEIGHT - handle_height, new_handle_y))
+                scroll_ratio = (new_handle_y - SCROLL_BAR_Y) / (SCROLL_AREA_HEIGHT - handle_height)
+                scroll_offset = int(scroll_ratio * max_offset)
+
+            elif event.type == MOUSEWHEEL:
+                scroll_offset -= event.y
+                scroll_offset = max(0, min(scroll_offset, max_offset))
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     running = False
@@ -402,4 +495,6 @@ def main():
         clock.tick(60)
 
 main()
+
+
 
