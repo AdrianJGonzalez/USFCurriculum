@@ -163,23 +163,36 @@ courses = {
                 "Credit Hours": 1
             },
             "4102": {
-                "Class Full Name": "Wireless Commiunication Systems Laboratory",
-                "Description": "The course provides an extensive hands-on introduction to digital and wireless communication systems; involving testing, modeling, simulation, and measurements of the performance of digital communication systems at both sub-system and system levels. Wireless channel and its effect on the system will be reviewed. Ways to counteract the channel and radio impairments will be practically shown.",
+                "Class Full Name": "Signals and Systems",
+                "Description": "Provides further study in the analysis of signals and linear systems. Includes time and frequency domain points of view such as Laplace and Fourier analysis as well as convolution.",
                 "Prereqs": {
                     "AND": [
                         {
-                            "Department": "EEL",
-                            "Course Code": "4512C",
+                            "Department": "EGN",
+                            "Course Code": "3402",
                             "Grade": "C"
                         },
                         {
-                            "Department": "EEL",
-                            "Course Code": "4423C",
+                            "Department": "EGN",
+                            "Course Code": "3374",
                             "Grade": "C"
                         }
                     ]
                 },
-                "Coreqs": "N/A",
+                "Coreqs": {
+                    "AND": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "3163C",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3374",
+                            "Grade": "C"
+                        }
+                    ]
+                },
                 "Credit Hours": 3
             },
             "3100": {
@@ -202,22 +215,22 @@ courses = {
                 "Coreqs": "N/A",
                 "Credit Hours": 3
             },
-            "3115L" : {
+            "3115L": {
                 "Class Full Name": "Laboratory I",
                 "Description": "Basic circuit theory applications; computer-aided design tools, electrical measurement techniques.",
                 "Prereqs": {
                     "AND": [
                         {
-                            "Department" : "EGN",
+                            "Department": "EGN",
                             "Course Code": "3373",
-                            "Grade" : "C"
+                            "Grade": "C"
                         }
                     ]
                 },
                 "Coreqs": "N/A",
                 "Credit Hours": 1
             },
-            "3116L" : {
+            "3116L": {
                 "Class Full Name": "Laboratory II",
                 "Description": "This larboratory is designed to introduce electrical engineering students to the design, building and testing of active electronic networks. Computer Aided Design tools and computer data acquistition strategies are examined in greater detail.",
                 "Prereqs": {
@@ -228,7 +241,6 @@ courses = {
                             "Grade": "C"
                         },
                         {
-
                             "Department": "EEL",
                             "Course Code": "EEL",
                             "Grade": "3115L"
@@ -239,7 +251,7 @@ courses = {
                 "Credit Hours": 1
             },
             "3472C": {
-                "Class Full Name": "Electrical Engineering Science II - Electromagnetics",
+                "Class Full Name": "Electrical Engineering Science II",
                 "Description": "Electromagnetic field theory, including charge distributions, static and dynamic electromagnetic fields, transmission lines and dynamic electromagnetic fields, transmission lines and optics.",
                 "Prereqs": {
                     "AND": [
@@ -256,7 +268,7 @@ courses = {
                     ]
                 },
                 "Coreqs": "N/A",
-                "Credit Hours": 3
+                "Credit Hours": 4
             },
             "4206L": {
                 "Class Full Name": "Electromechanical Energy System Lab",
@@ -501,7 +513,7 @@ courses = {
                 "Credit Hours": 3
             },
             "4657L": {
-                "Class Full Name": "Linear Contol Systems Laboratory",
+                "Class Full Name": "Linear Control Systems Laboratory",
                 "Description": "This laboratory introduces students to the techniques needed for the design and implementation of automatic industrial control systems. Students will learn the basics of the software and hardware used for the design and implementation of control systems.",
                 "Prereqs": "N/A",
                 "Coreqs": {
@@ -631,8 +643,8 @@ courses = {
                 "Credit Hours": 3
             },
             "4914": {
-                "Class Full Name": "EE Design 1",
-                "Description": "Students apply the knowledge acquired in the classroom to design a system which meets a predetermined set of specifications. Students work individually or in small groups with a faculty member (project director) in their area of interest. (Majors only.)",
+                "Class Full Name": "EE Deisgn 2",
+                "Description": "Students apply the knowledge acquired in the classroom to design a system which meets a predetermined set of specifications. Students work individually or in small groups with a faculty member (project director) in their area of interest. (Majors Only.)",
                 "Prereqs": {
                     "AND": [
                         {
@@ -644,6 +656,215 @@ courses = {
                 },
                 "Coreqs": "N/A",
                 "Credit Hours": 3
+            },
+            "4940": {
+                "Class Full Name": "Undergraduate Internship Experience",
+                "Description": "This course will be used to assess and ultimately assign credit for students demonstrating the application of professional engineering knowledge and skills in off-campus internship placements.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 0
+            },
+            "4915": {
+                "Class Full Name": "Advanced Undergraduate Research Experience",
+                "Description": "This class is a supervised research experience offered for undergraduates in chemical engineering. There is no syllabus for the class. Learning outcomes are determined by the supervising faculty member and documented in a departmental contract research form.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGS",
+                            "Course Code": "2070",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 0
+            },
+            "4872": {
+                "Class Full Name": "AI and Security in Cyber Physical Systems",
+                "Description": "This course will introduce challenges and opportunities in the use of artificial intelligence (AI) in cyber physical systems (CPSs). The course will provide students with skills to design and analyze CPSs that are intelligent, autonomous, reliable, secure and privacy preserving with the help of AI technologies. Various examples of CPSs and AI technologies will be discussed in different application domains including smart cities, smart grids, vehicular networks, health and biomedical systems, and robotics systems with a focus on their security aspects.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4835",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4010": {
+                "Class Full Name": "MAKE Hands-On Engineering Design",
+                "Description": "The primary objective of the course is to introduce students to the creative design of devices following the engineering design process. The course will teach students the essential design skills needed for the design of \u201cmechatronic\u201d devices (i.e. devices incorporating electronic, mechanical and software based components). After taking this course students will have basic knowledge in computer aided design, electronic circuit development, programming concepts and control systems",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4030": {
+                "Class Full Name": "Electrical Systems Environments",
+                "Description": "Dynamics, vibration, thermodynamics, and heat transfer in electrical, electronic, and electromechanical systems and their environments.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "MAP",
+                            "Course Code": "2302",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "PHY",
+                            "Course Code": "2049",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4213": {
+                "Class Full Name": "Industrial Power Distribution 1",
+                "Description": "Prepares the student to design electrical power systems for industrial applications. Source configurations, transformer connections, symmetrical and asymmetrical fault calculations, protective device sizing, arc flash calculations.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3375",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4214": {
+                "Class Full Name": "Electric (Utility) Distribution Systems",
+                "Description": "Familiarizes the student with electric utility power distribution systems. Modeling loads; distribution transformers; subtransmission lines, substations, and distribution primary and secondary; power system calcs, voltage regulation, protection methods.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3375",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4213",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4258": {
+                "Class Full Name": "Industrial Power Distribution 2",
+                "Description": "Prepares the student to design electrical power systems for industrial applications. Raceway design, switchgear and motor control centers, ladder logic, motor application, lighting systems.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4213",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4283": {
+                "Class Full Name": "Sustainable Energy",
+                "Description": "This course aims to introduce students to concepts of sustainable energy conversion. Solar, wind, hydroelectricity, hydrogen, biomass and geothermal energy conversion methods as well as main storage technologies will be discussed.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4420": {
+                "Class Full Name": "RF & Microwave Measurements",
+                "Description": "This course introduces students to the theory and applications of modern radio frequency and microwave measurements. Topics to be included are network analyzer, spectrum analyzer, noise, power, and non-linear distortion measurements. Modern trends also treated are the use of on-wafer measurements for transistor characterization and the evaluation of monolithic microwave integrated circuits.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4423L",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 2
+            },
+            "4567": {
+                "Class Full Name": "Electro-Optics",
+                "Description": "An introduction to the field of electro-optics, including visible and infra-red sources and detectors, radiometry, optical and electronic components, and fiber optics.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "3472C",
+                            "Grade": "C"
+                        },
+                        {
+                            "AND": [
+                                {
+                                    "Department": "PHY",
+                                    "Course Code": "2049",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "PHY",
+                                    "Course Code": "2049L",
+                                    "Grade": "C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4595": {
+                "Class Full Name": "Mobile and Personal Communication",
+                "Description": "Providing the students with a comprehensive knowledge of most technical aspects, operations, and applications of second/third/fourth generations and future cellular mobile and personal communication technology.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4635": {
+                "Class Full Name": "Digital Control Systems",
+                "Description": "Review of linear control systems, sampling process, discrete time linear systems analysis,  Z-transforms, modeling and design of digital control systems, digital implementation of  analog controller, state space representation, concepts of observability and controllability,  concepts of nonlinear digital controls and optimal controls.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4657",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4663": {
+                "Class Full Name": "Applied Robotics",
+                "Description": "This course provides a solid foundation of robotics including kinematics, programming, safety, common applications, and integration of robotic systems following a System Engineering approach. Concepts are emphasized using a hands-on approach. Students will develop projects and implement solutions to each of the topics discussed in class",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4657",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4905": {
+                "Class Full Name": "Independent Study",
+                "Description": "Specialized independent study determined by the students\u2019 needs and interests.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 1
             }
         },
         "EGN": {
@@ -909,6 +1130,113 @@ courses = {
                         }
                     ]
                 },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4748": {
+                "Class Full Name": "Cryptography and Data Security",
+                "Description": "This course provides an systematic overview and essential knowledge for engineering students to understand concepts and mechanisms in cryptography and data security in engineering applications.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4746": {
+                "Class Full Name": "Wireless Mobile Computing and Security",
+                "Description": "This course provides a systematic view of designing and securing wireless mobile computing systems and networks.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4506": {
+                "Class Full Name": "Biomedical Image Processing",
+                "Description": "2D signal processing: image enhancement; edge detection and image segmentation. Medical imaging: 3D computerized tomography, magnetic resonance imaging; single photon emission computed tomography; positron emission tomography; radiographs.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4423": {
+                "Class Full Name": "Quantum Computing and Communications",
+                "Description": "While silicon computing is heading toward its quantum limit, new technology frontier of computing and communications to fully take advantage of quantum mechanics by Nobel laureate Dr. R.P. Feynman emerges as one of the most critical technologies for human beings. This course aims at basic knowledge of quantum computing, from qubits, logic gates, algorithms, to quantum computer structure. Due to the integral nature of computing and communications, quantum information, error correcting codes, cryptography, and communications, serves the second part of this course. This course orienting technology toward quantum supremacy is developed suitable for undergraduate seniors.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "OR": [
+                                {
+                                    "Department": "EGN",
+                                    "Course Code": "2440",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "STA",
+                                    "Course Code": "4442",
+                                    "Grade": "C"
+                                }
+                            ]
+                        },
+                        {
+                            "OR": [
+                                {
+                                    "Department": "EGN",
+                                    "Course Code": "3420",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "EGN",
+                                    "Course Code": "4450",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "MAS",
+                                    "Course Code": "3105",
+                                    "Grade": "C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4260C": {
+                "Class Full Name": "Bioelectricity",
+                "Description": "Bioelectricity, generation and transmission from cells through tissues. Electrical activity in and among cells is explored from historical models through hands-on laboratory experience.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4271": {
+                "Class Full Name": "Bioelectronics",
+                "Description": "This is the second course in the series covering bioelectrical phenomena and systems. In this course the focus is electronics for biomedical applications, and the objective is to discuss electrical systems pertaining to the human body.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "3414": {
+                "Class Full Name": "Fundamentals of Data Structures",
+                "Description": "This course introduces essential data structures and algorithms, focusing on real-world applications. Topics include fundamental structures, sorting, stack and queue variants, and memory-efficient formats like sparse and compressed data. Practical exercises help students apply these concepts in program development.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "2161",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "4215": {
+                "Class Full Name": "Biomedical Optical Spectroscopy and Imaging",
+                "Description": "This course will introduce biomedical optical spectroscopy and imaging, including principles of light-tissue interaction, theoretical & computational modeling of photon diffusion, optical medical device instrumentation, and clinical applications.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4274": {
+                "Class Full Name": "MEMS I: Chemical/Biomedical Sensors and Microfabrication",
+                "Description": "The course gives an introduction to MEMS, microfabrication techniques and processes as well as basic design principles of biological and chemical Sensors. The course concentrates on basics of MEMS, different processes involved and principles of sensing.",
+                "Prereqs": "N/A",
                 "Coreqs": "N/A",
                 "Credit Hours": 3
             }
