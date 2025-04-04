@@ -1,6 +1,6 @@
 #This is in development and is not currently implemented to the larger application.
 #Things that remain to be done on this test
-#1. Add some vertical scrolling so that the user can read further down with more courses - done 
+#1. Add some vertical scrolling so that the user can read further down with more courses - Have a Temp Solution 
 #2. Make the boxes everso smaller in height
 #3. Add the Prereqs and Coreq Arrows to the courses. (Make sure the arrows don't touch!)
 #4. Give error window when adding duplicate classes
@@ -9,7 +9,7 @@
 #7. Add # of Credit Hours to the course box
 #8. Center the indicator icons (X and !)
 #9. Make the Semester indicator be the width of the column or centered
-#10. Maybe add a scroll bar in course selector
+#10. Maybe add a scroll bar in course selector - DONE
 #11. Add features that do not allow courses to be but in subsequent semesters if the prereq is not completed.
 #Actually add an option to override.
 #12. Integrate into the main program by adding it to main and by adding an "auto fill" feature from the transcript upload.
@@ -84,7 +84,9 @@ class Column:
         self.year_input = ""
         self.boxes = [Box()]
         self.year_rect = pygame.Rect(x + 110, 10, 60, 30)
-        self.scroll_y = 0
+        self.scroll_y = 0  # Add vertical scroll position
+        self.max_visible_boxes = (COLUMN_HEIGHT - 60) // 120  # Calculate how many boxes can fit
+        self.is_scrolling = False  # Add flag to track scrolling state
 
     def draw(self, screen, offset):
         self.x = self.base_x - offset
@@ -95,38 +97,71 @@ class Column:
         pygame.draw.rect(screen, BLACK, self.year_rect, 1)
         screen.blit(FONT.render(self.year_input, True, BLACK), (self.year_rect.x+5, self.year_rect.y+5))
 
-        for i, box in enumerate(self.boxes):
-            y = 60 + i * 100  # 110 height + 10px padding
-            if y + 80 < COLUMN_HEIGHT:
-                box.draw(screen, self.x + 10, y)
+        # Draw scroll indicators if needed
+        if self.scroll_y > 0:
+            pygame.draw.polygon(screen, BLACK, [
+                (self.x + 90, 50),
+                (self.x + 100, 40),
+                (self.x + 110, 50)
+            ])
+        
+        if (len(self.boxes) - self.scroll_y) > self.max_visible_boxes:
+            pygame.draw.polygon(screen, BLACK, [
+                (self.x + 90, COLUMN_HEIGHT - 10),
+                (self.x + 100, COLUMN_HEIGHT),
+                (self.x + 110, COLUMN_HEIGHT - 10)
+            ])
+
+        # Draw visible boxes with scroll offset
+        visible_boxes = self.boxes[self.scroll_y:self.scroll_y + self.max_visible_boxes]
+        for i, box in enumerate(visible_boxes):
+            y = 60 + i * 120  # 110 height + 10px padding
+            box.draw(screen, self.x + 10, y)
 
     def handle_event(self, event):
         if self.semester_dropdown.handle_event(event):
             return
-        if event.type == MOUSEBUTTONDOWN and self.year_rect.collidepoint(event.pos):
-            self.active = True
+
+        if event.type == MOUSEWHEEL:
+            mouse_x = pygame.mouse.get_pos()[0]
+            # Check if mouse is over this column
+            if self.x <= mouse_x <= self.x + 200:
+                self.is_scrolling = True  # Set scrolling flag
+                self.scroll_y = max(0, min(
+                    self.scroll_y - event.y,
+                    len(self.boxes) - self.max_visible_boxes
+                ))
+                return True
+
+        # Reset scrolling flag on mouse button up
+        if event.type == MOUSEBUTTONUP:
+            self.is_scrolling = False
+
+        # Only handle mouse clicks if we're not scrolling
+        if not self.is_scrolling and event.type == MOUSEBUTTONDOWN and event.button == 1:
+            if self.year_rect.collidepoint(event.pos):
+                self.active = True
+
+            # Get visible boxes for event handling
+            visible_boxes = self.boxes[self.scroll_y:self.scroll_y + self.max_visible_boxes]
+            for box in visible_boxes:
+                box.handle_event(event)
+
         if event.type == KEYDOWN:
             if event.key == K_BACKSPACE:
                 self.year_input = self.year_input[:-1]
             elif event.unicode.isdigit() and len(self.year_input) < 4:
                 self.year_input += event.unicode
 
-        for box in self.boxes:
-            box.handle_event(event)
-
+        # Filter out empty boxes except the last one
         self.boxes = [box for box in self.boxes if box.course or box == self.boxes[-1]]
         if not self.boxes or self.boxes[-1].course:
             self.boxes.append(Box())
-        
-        if event.type == pygame.MOUSEWHEEL:
-            if 0 <= pygame.mouse.get_pos()[0] - self.x <= 220:
-                self.scroll_y -= event.y * 30
-                self.scroll_y = max(0, self.scroll_y)
-            
+
 class Box:
     def __init__(self):
         self.course = None
-        self.rect = pygame.Rect(0, 0, 180, 110)  # Increased height
+        self.rect = pygame.Rect(0, 0, 180, 110)
         self.add_btn = pygame.Rect(0, 0, 180, 110)
         self.delete_btn = pygame.Rect(0, 0, 25, 25)
         self.info_btn = pygame.Rect(0, 0, 25, 25)
@@ -193,7 +228,15 @@ class Box:
             screen.blit(add_text, text_rect)
 
     def handle_event(self, event):
-        if event.type == MOUSEBUTTONDOWN:
+        # Only handle left mouse button clicks
+        if event.type == MOUSEBUTTONDOWN and event.button == 1:
+            # Get the parent Column instance
+            for column in columns:  # This assumes 'columns' is a global variable
+                if column.x <= event.pos[0] <= column.x + 200:
+                    if column.is_scrolling:  # Check if the column is scrolling
+                        return False
+                    break
+
             if self.course:
                 if self.delete_btn.collidepoint(event.pos):
                     self.course = None
@@ -202,55 +245,6 @@ class Box:
             elif self.add_btn.collidepoint(event.pos):
                 open_course_selector(self)
 
-def get_course_name(course_id):
-    try:
-        dept, code = course_id.split()
-        for school in courses.values():
-            if dept in school and code in school[dept]:
-                return school[dept][code].get("Class Full Name", "Unknown")
-    except:
-        pass
-    return "Unknown"
-
-def autofill_courses_into_flowchart(course_ids):
-    global columns
-
-    # Clear current columns
-    columns = []
-
-    # Define semester cycle and starting year
-    semesters = ["Fall", "Spring", "Summer"]
-    current_year = 2024
-    semester_index = 0
-
-    for i, course_id in enumerate(course_ids):
-        # Create a new column if needed
-        if len(columns) <= i:
-            new_col = Column(20 + i * 440)
-            new_col.semester_dropdown.selected = semesters[semester_index % 3]
-            new_col.year_input = str(current_year)
-            columns.append(new_col)
-
-            if semesters[semester_index % 3] == "Summer":
-                current_year += 1
-            semester_index += 1
-
-        # Assign course to the first box in the column
-        columns[i].boxes[0].course = course_id + ": " + get_course_name(course_id)
-
-def load_completed_courses():
-    if not os.path.exists("completed_courses.json"):
-        return []
-
-    with open("completed_courses.json", "r") as f:
-        data = json.load(f)
-
-    # Extract just the "DEPT CODE" part from "DEPT CODE - Course Name"
-    course_ids = []
-    for entry in data:
-        if " - " in entry:
-            course_ids.append(entry.split(" - ")[0].strip())
-    return course_ids
 
 def open_course_selector(box):
     search_text = ""
@@ -261,6 +255,8 @@ def open_course_selector(box):
     dept_dropdown = Dropdown(220, 120, ["All"] + departments, width=120, selected="All")
 
     close_btn = pygame.Rect(950, 110, 40, 30)
+    
+    # Add scrollbar constants
     SCROLL_AREA_HEIGHT = 500
     SCROLL_BAR_X = 980
     SCROLL_BAR_Y = 170
@@ -321,12 +317,13 @@ def open_course_selector(box):
         # Draw dropdown options on top (if expanded)
         if dept_dropdown.expanded:
             dept_dropdown.draw(SCREEN)
-        # Scrollbar background
+
+        # Draw scrollbar
         scrollbar_rect = pygame.Rect(SCROLL_BAR_X, SCROLL_BAR_Y, SCROLL_BAR_WIDTH, SCROLL_AREA_HEIGHT)
         pygame.draw.rect(SCREEN, LIGHT_GRAY, scrollbar_rect)
         pygame.draw.rect(SCREEN, BLACK, scrollbar_rect, 1)
 
-        # Scroll handle position
+        # Calculate and draw scroll handle
         total_courses = len(filtered)
         max_offset = max(0, total_courses - 18)
         scroll_ratio = scroll_offset / max_offset if max_offset > 0 else 0
@@ -339,7 +336,7 @@ def open_course_selector(box):
 
         pygame.display.flip()
 
-        for event in pygame.event.get():  # <-- Make sure this is at root level of `while running`
+        for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
@@ -358,14 +355,12 @@ def open_course_selector(box):
                             running = False
             elif event.type == MOUSEBUTTONUP:
                 is_dragging_scrollbar = False
-
             elif event.type == MOUSEMOTION and is_dragging_scrollbar:
                 mouse_y = event.pos[1]
                 new_handle_y = mouse_y - scroll_drag_offset_y
                 new_handle_y = max(SCROLL_BAR_Y, min(SCROLL_BAR_Y + SCROLL_AREA_HEIGHT - handle_height, new_handle_y))
                 scroll_ratio = (new_handle_y - SCROLL_BAR_Y) / (SCROLL_AREA_HEIGHT - handle_height)
                 scroll_offset = int(scroll_ratio * max_offset)
-
             elif event.type == MOUSEWHEEL:
                 scroll_offset -= event.y
                 scroll_offset = max(0, min(scroll_offset, max_offset))
@@ -378,6 +373,61 @@ def open_course_selector(box):
                     search_text += event.unicode
 
 
+def wrap_text(text, font, max_width):
+    words = text.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        test_line = current_line + (" " if current_line else "") + word
+        if font.size(test_line)[0] <= max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word
+    if current_line:
+        lines.append(current_line)
+    return lines
+
+def decode_requirement(req, parent_op=None, top_level=False):
+    """
+    Recursively deciphers a nested prerequisite/corequisite structure.
+    """
+    if isinstance(req, dict):
+        keys = list(req.keys())
+        # Check if this dict represents a group with an operator
+        if len(keys) == 1 and keys[0] in ["AND", "OR"]:
+            op = keys[0]
+            children = req[op]
+            # Process each child; pass the current operator as parent_op
+            sub_strings = [decode_requirement(child, parent_op=op, top_level=False) for child in children]
+            # Filter out any empty strings
+            sub_strings = [s for s in sub_strings if s]
+            # Join using the operator
+            joined = f" {op} ".join(sub_strings)
+            # Always enclose OR groups in brackets
+            # Also, if an AND group is nested inside an OR group, enclose it
+            if op == "OR" or (parent_op == "OR" and op == "AND"):
+                return f"[{joined}]"
+            else:
+                return joined
+        else:
+            # It's a leaf requirement
+            dept = req.get("Department", "")
+            code = req.get("Course Code", "")
+            grade = req.get("Grade", "")
+            if dept or code or grade:
+                if grade:
+                    return f"{dept} {code} (min grade {grade})"
+                else:
+                    return f"{dept} {code}"
+            else:
+                return ""
+    elif isinstance(req, list):
+        # If req is a list, join the items
+        sub_strings = [decode_requirement(item, parent_op=parent_op, top_level=top_level) for item in req]
+        return " ".join(sub_strings)
+    else:
+        return str(req)
 
 def show_course_info(course_name):
     parts = course_name.split(":")[0].split()
@@ -394,20 +444,51 @@ def show_course_info(course_name):
 
     running = True
     close_btn = pygame.Rect(950, 110, 40, 30)
+    info_box_width = 760  # Width of the content area in the info box
+    
     while running:
         SCREEN.fill(WHITE)
+        # Draw the info box background
         pygame.draw.rect(SCREEN, LIGHT_GRAY, (200, 100, 800, 600))
         pygame.draw.rect(SCREEN, BLACK, (200, 100, 800, 600), 2)
 
+        # Draw close button
         pygame.draw.rect(SCREEN, RED, close_btn)
         SCREEN.blit(FONT.render("X", True, WHITE), (close_btn.x + 12, close_btn.y + 6))
 
+        # Draw course name at the top
         SCREEN.blit(BIG_FONT.render(course_name, True, BLACK), (220, 130))
+        
         y_offset = 180
         for key, val in data.items():
-            info = f"{key}: {val}"
-            SCREEN.blit(FONT.render(info, True, BLACK), (220, y_offset))
-            y_offset += 30
+            # Special handling for Prereqs and Coreqs
+            if key in ["Prereqs", "Coreqs"] and isinstance(val, (dict, list)):
+                # Render the key
+                key_surface = FONT.render(f"{key}:", True, BLACK)
+                SCREEN.blit(key_surface, (220, y_offset))
+                y_offset += 30
+                
+                # Decode and wrap the requirements
+                decoded_reqs = decode_requirement(val, top_level=True)
+                wrapped_lines = wrap_text(decoded_reqs, FONT, info_box_width - 240)  # Extra indent for requirements
+                
+                for line in wrapped_lines:
+                    SCREEN.blit(FONT.render(line, True, BLACK), (240, y_offset))  # Extra indent
+                    y_offset += 25  # Slightly smaller spacing for wrapped lines
+                
+                y_offset += 15  # Add some space after the requirement block
+            else:
+                # Regular field rendering
+                key_surface = FONT.render(f"{key}:", True, BLACK)
+                SCREEN.blit(key_surface, (220, y_offset))
+                
+                # Word wrap and render the value
+                wrapped_lines = wrap_text(str(val), FONT, info_box_width - 220)
+                for line in wrapped_lines:
+                    y_offset += 30
+                    SCREEN.blit(FONT.render(line, True, BLACK), (240, y_offset))
+            
+            y_offset += 40  # Add extra spacing between different fields
 
         pygame.display.flip()
 
@@ -495,6 +576,4 @@ def main():
         clock.tick(60)
 
 main()
-
-
 
