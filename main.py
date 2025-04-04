@@ -41,6 +41,9 @@ buttons = {
     "faq": pygame.Rect(10, 10 + 5 * (button_height + button_margin), LEFT_COLUMN_WIDTH - 20, button_height),
 }
 
+# Right content area
+right_area_rect = pygame.Rect(LEFT_COLUMN_WIDTH, 0, WINDOW_WIDTH - LEFT_COLUMN_WIDTH, WINDOW_HEIGHT)
+
 active_page = "welcome"
 scroll_offset = 0
 
@@ -55,14 +58,21 @@ while running:
         elif event.type == pygame.VIDEORESIZE:
             WINDOW_WIDTH, WINDOW_HEIGHT = event.w, event.h
             screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
+            # Update right area rect when window is resized
+            right_area_rect.width = WINDOW_WIDTH - LEFT_COLUMN_WIDTH
+            right_area_rect.height = WINDOW_HEIGHT
 
         elif event.type == pygame.KEYDOWN:
             if active_page == "advising_main":
                 advising_main.process_search_event(event)
+            elif active_page == "curriculum":
+                curriculum.handle_event(event, right_area_rect)
 
         elif event.type == pygame.MOUSEWHEEL:
             if active_page == "advising_main":
                 scroll_offset -= event.y * 30  # Adjust scroll speed
+            elif active_page == "curriculum":
+                curriculum.handle_event(event, right_area_rect)
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 4:  # Scroll up
@@ -79,6 +89,9 @@ while running:
                 # Handle transcript button inside main area
                 if active_page == "transcript":
                     transcript.handle_event(event)
+                # Handle curriculum events
+                elif active_page == "curriculum":
+                    curriculum.handle_event(event, right_area_rect)
 
                 # Sidebar buttons
                 for key in buttons:
@@ -86,6 +99,14 @@ while running:
                         active_page = key
                         scroll_offset = 0
                         break
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if active_page == "curriculum":
+                curriculum.handle_event(event, right_area_rect)
+
+        elif event.type == pygame.MOUSEMOTION:
+            if active_page == "curriculum":
+                curriculum.handle_event(event, right_area_rect)
 
     # Clear screen and draw left sidebar
     screen.fill(WHITE)
@@ -106,7 +127,6 @@ while running:
         screen.blit(text_surface, text_rect)
 
     # Draw the right content area
-    right_area_rect = pygame.Rect(LEFT_COLUMN_WIDTH, 0, WINDOW_WIDTH - LEFT_COLUMN_WIDTH, WINDOW_HEIGHT)
     pygame.draw.rect(screen, WHITE, right_area_rect)
     pygame.draw.rect(screen, BLACK, right_area_rect, 2)
 
@@ -126,4 +146,3 @@ while running:
 
 pygame.quit()
 sys.exit()
-
