@@ -80,6 +80,7 @@ class Dropdown:
 class Column:
     def __init__(self, x, semester="Fall", year="2025"):
         self.base_x = x
+        self.x = x  # Initialize x here
         self.semester_dropdown = Dropdown(x + 10, 10, ["Fall", "Spring", "Summer"])
         self.year_input = ""
         self.boxes = [Box()]
@@ -87,9 +88,10 @@ class Column:
         self.scroll_y = 0  # Add vertical scroll position
         self.max_visible_boxes = (COLUMN_HEIGHT - 60) // 120  # Calculate how many boxes can fit
         self.is_scrolling = False  # Add flag to track scrolling state
+        self.active = False  # Track if this column is active for year input
 
     def draw(self, screen, offset):
-        self.x = self.base_x - offset
+        self.x = self.base_x - offset  # Update x with offset
         self.semester_dropdown.rect.x = self.x + 10
         self.year_rect.x = self.x + 110
         self.semester_dropdown.draw(screen)
@@ -137,21 +139,28 @@ class Column:
         if event.type == MOUSEBUTTONUP:
             self.is_scrolling = False
 
-        # Only handle mouse clicks if we're not scrolling
-        if not self.is_scrolling and event.type == MOUSEBUTTONDOWN and event.button == 1:
+        # Handle year input
+        if event.type == MOUSEBUTTONDOWN and event.button == 1:
             if self.year_rect.collidepoint(event.pos):
+                # Deactivate all other columns
+                for col in columns:
+                    col.active = False
                 self.active = True
+            else:
+                self.active = False
 
-            # Get visible boxes for event handling
-            visible_boxes = self.boxes[self.scroll_y:self.scroll_y + self.max_visible_boxes]
-            for box in visible_boxes:
-                box.handle_event(event)
-
-        if event.type == KEYDOWN:
+        # Only handle year input if this column is active
+        if self.active and event.type == KEYDOWN:
             if event.key == K_BACKSPACE:
                 self.year_input = self.year_input[:-1]
             elif event.unicode.isdigit() and len(self.year_input) < 4:
                 self.year_input += event.unicode
+
+        # Handle box events
+        if not self.is_scrolling and event.type == MOUSEBUTTONDOWN and event.button == 1:
+            visible_boxes = self.boxes[self.scroll_y:self.scroll_y + self.max_visible_boxes]
+            for box in visible_boxes:
+                box.handle_event(event)
 
         # Filter out empty boxes except the last one
         self.boxes = [box for box in self.boxes if box.course or box == self.boxes[-1]]
@@ -576,4 +585,3 @@ def main():
         clock.tick(60)
 
 main()
-
