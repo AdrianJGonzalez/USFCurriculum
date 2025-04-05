@@ -46,3 +46,5 @@
     11. PYPDF2 - Used to extract content from PDF files 
               Installation 
               **Thonny** - Tool > Manage Package > search pypdf2 > install
+    12. webbrowser - Provides a high-level interface to open web pages in the user's default web browser
+              Installation - included in thonny 
