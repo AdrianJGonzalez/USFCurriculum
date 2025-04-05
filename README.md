@@ -9,6 +9,7 @@
 
 **Libraries**:
   These are the libraries that are necesssary for the application of our program:
+  
     1. pygame - Provide the main graphical interface for the application
                 Installation: 
                 **Thonny** - Tool > Manage Package > search pygame > install
@@ -24,7 +25,7 @@
     4. tkinter - Provide GUI components for file dialogs 
                 Installtion - Included in thonny 
 
-    5. json - Used to save text data, similar to text file but in json format which is easier to implement                 into the program
+    5. json - Used to save text data, similar to text file but in json format which is easier to implement into the program
               Installation - Included in thonny 
 
     6. re - Used for regular expression matching to extract courses from transcript
