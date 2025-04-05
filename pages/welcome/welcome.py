@@ -4,7 +4,7 @@ def render(surface, area_rect, font, BLACK, BLUE):
     padding = 20
     
     # Render the welcome text
-    text = "Welcome to the Flowchart Application!"
+    text = "Welcome to the Flowchart Application! Below is work in progress. Buttons don't work yet."
     text_surface = font.render(text, True, BLACK)
     surface.blit(text_surface, (area_rect.x + padding, area_rect.y + padding))
     

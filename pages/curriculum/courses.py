@@ -1243,12 +1243,29 @@ courses = {
         }
     },
     "Hillsborough CC": {
+        "BSC": {
+            "1005": {
+                "Class Full Name": "BIOLOGICAL FOUNDATIONS",
+                "Description": "Biological Foundations course",
+                "Credit Hours": 3
+            },
+            "1005L": {
+                "Class Full Name": "BIOLOGICAL FOUNDATIONS LAB",
+                "Description": "Biological Foundations Laboratory",
+                "Credit Hours": 1
+            }
+        },
         "ENC": {
             "1101": {
                 "Class Full Name": "English Composition I",
                 "Description": "English Class",
                 "CoReqs": "N/A",
                 "Prereqs": "N/A",
+                "Credit Hours": 3
+            },
+            "1102": {
+                "Class Full Name": "ENGLISH COMPOSITION II",
+                "Description": "English Composition II course",
                 "Credit Hours": 3
             }
         }
