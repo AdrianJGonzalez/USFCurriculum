@@ -1,11 +1,11 @@
 **Project Overview**:
   The curriculum is designed using Python 3.10.11 to assist students, particularly those in engineering programs at USF, in planning their academic curriculum. The application provide a visual interface to create a semester by semester courses flowchart, track completed courses from transcript, explore different tracks and department advising. This application uses a combination of GUI libraries and PDF processing libraries. It is designed to be more user-friendly and visually appealing compared to the current curriculum. Key features of the program will include:
-   1. **Transcript Parsing** - Allow user to upload transcript, then will process to extract completed course                                   related to major and display them in the flowchart.
-   2. **Flowchart** - Create a visual flowchart of completed courses through semester and allow user to plan for                       upcoming semester with ability to add, remove, and view course details.
+   1. **Transcript Parsing** - Allow user to upload transcript, then will process to extract completed course related to major and display them in the flowchart.
+   2. **Flowchart** - Create a visual flowchart of completed courses through semester and allow user to plan for upcoming semester with ability to add, remove, and view course details.
    3. **Track Selection** - Able to choose different electrical engineering track to guide course planning
    4. **Advising Information** - Access deparment-specific advising pages for information.
-   5. **Course Management** - User are able to manage course data like pre-req or coreq through visual                                         interface.
-   6. **Course Information Display** - Able to view all courses' information including description of the                                               course, pre-req, coreq and credit hours
+   5. **Course Management** - User are able to manage course data like pre-req or coreq through visual interface.
+   6. **Course Information Display** - Able to view all courses' information including description of the course, pre-req, coreq and credit hours
 
 **Libraries**:
   These are the libraries that are necesssary for the application of our program:
