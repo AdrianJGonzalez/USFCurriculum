@@ -48,3 +48,14 @@
               **Thonny** - Tool > Manage Package > search pypdf2 > install
     12. webbrowser - Provides a high-level interface to open web pages in the user's default web browser
               Installation - included in thonny 
+
+    **What's Left**:
+1. Adding Prereq and Coreq arrows into the flowchart
+2. Making the transcipt courses go into the flowchart.
+3. Add the Advising Department selection feature into the FAQ for department specfic FAQ sections
+4. Make the Welcome page more general and not EE focus. Figure out what to put there.
+5. Make the About this program be more general and remove the EE stuff.
+6. Make the program look visually better and add more ease of access.
+7. Add the Admin tools to add, delete, and modify courses in the courses.pygame
+8. Add the feature to save the flowchart for later and so that an advisor can easly open it up.
+9. Add IOS/Andriod Support maybe even make it a website.
