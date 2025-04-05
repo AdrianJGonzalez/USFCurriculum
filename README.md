@@ -49,7 +49,7 @@
     12. webbrowser - Provides a high-level interface to open web pages in the user's default web browser
               Installation - included in thonny 
 
-    **What's Left**:
+**What's Left**:
 1. Adding Prereq and Coreq arrows into the flowchart
 2. Making the transcipt courses go into the flowchart.
 3. Add the Advising Department selection feature into the FAQ for department specfic FAQ sections
