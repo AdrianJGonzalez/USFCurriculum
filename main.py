@@ -7,7 +7,7 @@ from pages.advising import advising_main
 from pages.welcome import welcome
 from pages.curriculum import curriculum
 from pages.transcript import transcript
-from pages.faq import faq
+from pages.faq import faq_main
 from pages import about
 
 pygame.init()
@@ -298,7 +298,7 @@ while running:
         "advising_main": lambda s, r, f, b, bl: advising_main.render(s, r, f, b, bl, scroll_offset),
         "transcript": transcript.render,
         "about": about.render,
-        "faq": faq.render
+        "faq": lambda s, r, f, b, bl: faq_main.render(s, r, f, b, bl, scroll_offset)
     }
     render_functions[active_page](screen, right_area_rect, font, BLACK, BLUE)
 
