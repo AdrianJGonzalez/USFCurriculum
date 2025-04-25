@@ -6,6 +6,7 @@ from bookmarks.flowchart import FlowchartPage
 from bookmarks.track_selector import TrackSelector
 from bookmarks.upload_transcript import TranscriptPage
 from bookmarks.advising import AdvisingPage
+from bookmarks.faq import FAQPage  # <-- Add this import
 
 class MainApplication(tk.Tk):
     def __init__(self):
@@ -25,6 +26,7 @@ class MainApplication(tk.Tk):
         self.track_selector_frame = TrackSelector(self.notebook)
         self.transcript_frame = TranscriptPage(self.notebook)
         self.advising_frame = AdvisingPage(self.notebook)
+        self.faq_frame = FAQPage(self.notebook)  # <-- Add this line
         
         # Connect transcript page to flowchart
         self.transcript_frame.set_flowchart(self.flowchart_frame)
@@ -36,7 +38,9 @@ class MainApplication(tk.Tk):
         self.notebook.add(self.track_selector_frame, text="Track Selector")
         self.notebook.add(self.transcript_frame, text="Upload Transcript")
         self.notebook.add(self.advising_frame, text="Advising")
+        self.notebook.add(self.faq_frame, text="FAQ")  # <-- Add this line
 
 if __name__ == "__main__":
     app = MainApplication()
     app.mainloop()
+
