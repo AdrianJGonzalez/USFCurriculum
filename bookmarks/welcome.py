@@ -47,7 +47,8 @@ class WelcomePage(ttk.Frame):
                  "• Flowchart - View your program flowchart\n\n" +
                  "• Degree Selector - Choose your degree program\n\n" +
                  "• Upload Transcript - Upload and manage your transcripts\n\n" +
-                 "• Advising - Select your department and information!",
+                 "• Advising - Select your department and information!\n\n"+
+                 "• FAQs - Frequently Asked Questions",
             style="Welcome.TLabel",
             wraplength=600,
             justify="center"
@@ -68,3 +69,4 @@ if __name__ == "__main__":
     app = WelcomePage(root)
     app.pack(expand=True, fill="both")
     root.mainloop()
+
