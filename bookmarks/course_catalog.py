@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from PIL import Image, ImageTk, ImageEnhance
+import os
 from courses import courses
 
 class CourseDetailsWindow(tk.Toplevel):
@@ -62,11 +64,19 @@ class CourseCatalogPage(ttk.Frame):
         self.create_widgets()
         
     def create_widgets(self):
+        style = ttk.Style()
+        style.configure("Welcome.TFrame", background="#EDEBD1") 
+        style.configure("Header.TLabel", background="#EDEBD1", foreground="#006747", font=("Helvetica", 20, "bold")) 
+        style.configure("Treeview", rowheight=30)  
+        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"), foreground="#006747") 
+        style.map("Treeview", background=[('selected', '#CFC493')])  
+
+        self.configure(style="Welcome.TFrame")
         # Header
         header = ttk.Label(
             self,
             text="Course Catalog",
-            font=("Helvetica", 14)
+            style="Header.TLabel"
         )
         header.pack(pady=10)
         
@@ -102,7 +112,7 @@ class CourseCatalogPage(ttk.Frame):
             department_frame,
             textvariable=self.department_var,
             state="readonly",
-            width=15  # Half of university width
+            width=15 
         )
         self.department_combo.pack(fill='x', padx=10, pady=5)
         self.department_combo.bind('<<ComboboxSelected>>', self.update_courses)
@@ -115,7 +125,13 @@ class CourseCatalogPage(ttk.Frame):
         search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
         search_entry.pack(fill='x', padx=5, pady=5)
         search_entry.bind('<KeyRelease>', self.search_courses)
-        
+        clear_button = ttk.Button(search_frame, text="Clear Search", command=self.clear_search)
+        clear_button.pack(pady=5)
+
+        # Reset All button
+        reset_button = ttk.Button(left_panel, text="Reset All", command=self.reset_all)
+        reset_button.pack(fill='x', padx=5, pady=5)
+
         # Create right panel for course list
         right_panel = ttk.Frame(main_container)
         right_panel.pack(side='right', fill='both', expand=True, padx=5)
@@ -128,11 +144,11 @@ class CourseCatalogPage(ttk.Frame):
         )
         
         # Define headings and center them
-        self.course_list.heading("Code", text="Course Code", anchor='center')
-        self.course_list.heading("Name", text="Course Name", anchor='w')
-        self.course_list.heading("Credits", text="Credits", anchor='center')
-        self.course_list.heading("Prerequisites", text="Prerequisites", anchor='w')
-        self.course_list.heading("Corequisites", text="Corequisites", anchor='w')
+        self.course_list.heading("Code", text="Course Code", anchor='center', command=lambda: self.sort_column("Code", False))
+        self.course_list.heading("Name", text="Course Name", anchor='w', command=lambda: self.sort_column("Name", False))
+        self.course_list.heading("Credits", text="Credits", anchor='center', command=lambda: self.sort_column("Credits", False))
+        self.course_list.heading("Prerequisites", text="Prerequisites", anchor='w', command=lambda: self.sort_column("Prerequisites", False))
+        self.course_list.heading("Corequisites", text="Corequisites", anchor='w', command=lambda: self.sort_column("Corequisites", False))
         
         # Set column widths and alignment
         self.course_list.column("Code", width=100, anchor='center')
@@ -155,7 +171,24 @@ class CourseCatalogPage(ttk.Frame):
         if courses:
             self.university_var.set(list(courses.keys())[0])
             self.update_departments()
-    
+
+    def sort_column(self, col, reverse):
+        # Get all items in the Treeview
+        items = [(self.course_list.set(k, col), k) for k in self.course_list.get_children('')]
+        
+        # Sort items (handle numeric columns like Credits)
+        if col == "Credits":
+            items.sort(key=lambda x: int(x[0]), reverse=reverse)
+        else:
+            items.sort(reverse=reverse)
+
+        # Rearrange items in the Treeview
+        for index, (val, k) in enumerate(items):
+            self.course_list.move(k, '', index)
+
+        # Toggle the sort direction for the next click
+        self.course_list.heading(col, command=lambda: self.sort_column(col, not reverse))
+   
     def update_departments(self, event=None):
         university = self.university_var.get()
         if university in courses:
@@ -164,6 +197,20 @@ class CourseCatalogPage(ttk.Frame):
             self.department_var.set("All")
             self.update_courses()
     
+    def clear_search(self):
+        self.search_var.set("")
+        self.update_courses()
+
+    def reset_all(self):
+            # Reset University to the first option
+            if courses:
+                self.university_var.set(list(courses.keys())[0])
+                self.update_departments()  # This will also reset the Department to "All"
+            # Clear the search field
+            self.search_var.set("")
+            # Refresh the course list
+            self.update_courses()
+            
     def update_courses(self, event=None):
         university = self.university_var.get()
         department = self.department_var.get()
