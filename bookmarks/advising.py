@@ -38,7 +38,8 @@ class AdvisingPage(ttk.Frame):
         header = ttk.Label(
             self,
             text="Academic Advising",
-            font=("Helvetica", 14)
+            font=("Helvetica", 20, 'bold'),
+            foreground='#006747'
         )
         header.pack(pady=20)
         
@@ -160,19 +161,23 @@ class AdvisingPage(ttk.Frame):
             try:
                 # Load the module
                 spec = importlib.util.spec_from_file_location(module_name, module_path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                
-                # Clear any existing widgets in the frame
-                for widget in self.advising_frame.winfo_children():
-                    widget.destroy()
-                
-                # Hide the selection frame and show the advising frame
-                self.selection_frame.pack_forget()
-                self.advising_frame.pack(expand=True, fill='both')
-                
-                # Call the module's render function with the images directory
-                module.render(self.advising_frame, images_dir)
+                if spec is not None and spec.loader is not None:
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    
+                    # Clear any existing widgets in the frame
+                    for widget in self.advising_frame.winfo_children():
+                        widget.destroy()
+                    
+                    # Hide the selection frame and show the advising frame
+                    self.selection_frame.pack_forget()
+                    self.advising_frame.pack(expand=True, fill='both')
+                    
+                    # Call the module's render function with the images directory
+                    module.render(self.advising_frame, images_dir)
+                    
+                else:
+                    raise ImportError(f"Could not load module spec for {module_name} at {module_path}")
                 
             except Exception as e:
                 print(f"Error loading advising module: {e}")
@@ -201,9 +206,12 @@ class AdvisingPage(ttk.Frame):
             
             try:
                 spec = importlib.util.spec_from_file_location(module_name, module_path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                if hasattr(module, 'get_advising_url'):
-                    webbrowser.open(module.get_advising_url())
+                if spec is not None and spec.loader is not None:
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    if hasattr(module, 'get_advising_url'):
+                        webbrowser.open(module.get_advising_url())
+                else:
+                    raise ImportError(f"Could not load module spec for {module_name} at {module_path}")
             except Exception as e:
                 print(f"Error getting department URL: {e}") 

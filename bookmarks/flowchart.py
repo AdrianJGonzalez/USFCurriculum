@@ -5,211 +5,269 @@ from tkinter import ttk
 from datetime import datetime
 import sys
 import os
+import time
 
 # Add the parent directory to the Python path to import courses
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from courses import courses  # Import the course catalog data
 
 class CourseCatalogPopup(tk.Toplevel):
-    def __init__(self, parent, semester, callback):
+    def __init__(self, parent, semester, flowchart_page):
         super().__init__(parent)
-        self.semester = semester
-        self.callback = callback
         self.title(f"Add Course to {semester}")
-        self.geometry("800x600")
+        self.semester = semester
+        self.flowchart_page = flowchart_page
+        self.course_list = None  # Initialize to None
+        self.setup_ui()
+        self.update_course_list()  # This will create and populate the course_list
+
+    def setup_ui(self):
+        # Configure styles
+        style = ttk.Style()
+        style.configure("Header.TLabel",
+                       background="#a9a7a3",
+                       foreground="#006747",
+                       font=('Helvetica', 20, 'bold'))
         
-        # Initialize variables
-        self.search_var = tk.StringVar()
-        self.dept_var = tk.StringVar()
-        self.course_list = None
+        style.configure("Treeview",
+                       background="#CAD2D8",
+                       rowheight=30)
         
+        style.configure("Treeview.Heading",
+                       foreground="#006747",
+                       font=('Helvetica', 12, 'bold'))
+
         # Create main container
         main_container = ttk.Frame(self)
-        main_container.pack(fill='both', expand=True, padx=10, pady=5)
-        
-        # Left panel for course list
+        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Header
+        header = ttk.Label(main_container, 
+                          text=f"Add Course to {self.semester}",
+                          style="Header.TLabel")
+        header.pack(fill=tk.X, pady=(0, 10))
+
+        # Left panel for department selection and search
         left_panel = ttk.Frame(main_container)
-        left_panel.pack(side='left', fill='y', padx=(0, 10))
-        
-        # Department selection
-        dept_frame = ttk.Frame(left_panel)
-        dept_frame.pack(fill='x', pady=5)
-        
-        ttk.Label(dept_frame, text="Department:").pack(side='left')
-        self.dept_var.trace('w', self.update_course_list)
-        dept_dropdown = ttk.Combobox(
-            dept_frame,
-            textvariable=self.dept_var,
-            values=["All"] + self.get_departments(),
-            state="readonly"
-        )
-        dept_dropdown.pack(side='left', fill='x', expand=True, padx=5)
-        dept_dropdown.set("All")  # Set default to "All"
-        
+        left_panel.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
+
+        # Department dropdown
+        ttk.Label(left_panel, text="Department:").pack(anchor=tk.W)
+        self.dept_var = tk.StringVar()
+        self.dept_dropdown = ttk.Combobox(left_panel, 
+                                        textvariable=self.dept_var,
+                                        state="readonly")
+        # Get all departments from USF courses and add "All" option
+        self.dept_dropdown['values'] = ["All"] + sorted(courses["University of South Florida"].keys())
+        self.dept_dropdown.set("All")  # Set default value to "All"
+        self.dept_dropdown.pack(fill=tk.X, pady=(0, 10))
+        self.dept_dropdown.bind('<<ComboboxSelected>>', 
+                              lambda e: self.update_course_list())
+
         # Search box
-        search_frame = ttk.Frame(left_panel)
-        search_frame.pack(fill='x', pady=5)
-        
-        ttk.Label(search_frame, text="Search:").pack(side='left')
-        self.search_var.trace('w', self.update_course_list)
-        search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
-        search_entry.pack(side='left', fill='x', expand=True, padx=5)
-        
-        # Course list
-        self.course_list = tk.Listbox(
-            left_panel,
-            width=40,
-            height=30
-        )
-        self.course_list.pack(fill='both', expand=True)
-        
-        # Right panel for course details
+        ttk.Label(left_panel, text="Search:").pack(anchor=tk.W)
+        self.search_var = tk.StringVar()
+        self.search_entry = ttk.Entry(left_panel, textvariable=self.search_var)
+        self.search_entry.pack(fill=tk.X)
+        self.search_var.trace('w', lambda *args: self.update_course_list())
+
+        # Right panel for course list
         right_panel = ttk.Frame(main_container)
-        right_panel.pack(side='left', fill='both', expand=True)
+        right_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Course list with scrollbar
+        self.course_list = ttk.Treeview(right_panel,
+                                      columns=("code", "name", "credits", "prereqs", "coreqs"),
+                                      show="headings",
+                                      selectmode="browse")
         
-        # Course details
-        details_frame = ttk.LabelFrame(right_panel, text="Course Details")
-        details_frame.pack(fill='both', expand=True)
+        # Configure columns
+        self.course_list.heading("code", text="Code",
+                               command=lambda: self.sort_column("code", False))
+        self.course_list.heading("name", text="Name",
+                               command=lambda: self.sort_column("name", False))
+        self.course_list.heading("credits", text="Credits",
+                               command=lambda: self.sort_column("credits", False))
+        self.course_list.heading("prereqs", text="Prerequisites",
+                               command=lambda: self.sort_column("prereqs", False))
+        self.course_list.heading("coreqs", text="Corequisites",
+                               command=lambda: self.sort_column("coreqs", False))
+
+        # Set column widths
+        self.course_list.column("code", width=100)
+        self.course_list.column("name", width=200)
+        self.course_list.column("credits", width=70)
+        self.course_list.column("prereqs", width=150)
+        self.course_list.column("coreqs", width=150)
+
+        # Add scrollbar
+        scrollbar = ttk.Scrollbar(right_panel, orient=tk.VERTICAL,
+                                command=self.course_list.yview)
+        self.course_list.configure(yscrollcommand=scrollbar.set)
+
+        # Pack course list and scrollbar
+        self.course_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Add course button
+        add_button = ttk.Button(main_container, text="Add Course",
+                              command=self.add_selected_course)
+        add_button.pack(side=tk.BOTTOM, pady=10)
+
+    def update_course_list(self):
+        if not self.course_list:
+            return
+
+        # Clear existing items
+        for item in self.course_list.get_children():
+            self.course_list.delete(item)
+
+        # Get selected department and search term
+        selected_dept = self.dept_var.get()
+        search_term = self.search_var.get().lower()
+
+        # Get courses from USF catalog
+        usf_courses = courses["University of South Florida"]
         
-        self.details_text = tk.Text(
-            details_frame,
-            wrap='word',
-            height=20,
-            state='disabled'
-        )
-        self.details_text.pack(fill='both', expand=True, padx=5, pady=5)
-        
-        # Add button
-        add_button = ttk.Button(
-            right_panel,
-            text="Add Course",
-            command=self.add_selected_course
-        )
-        add_button.pack(pady=10)
-        
-        # Bind selection event
-        self.course_list.bind('<<ListboxSelect>>', self.show_course_details)
-        
-        # Initialize course list
-        self.update_course_list()
-        
-    def get_departments(self):
-        """Get list of departments from the course catalog"""
-        return list(courses["University of South Florida"].keys())
-        
-    def update_course_list(self, *args):
-        try:
-            if not hasattr(self, 'course_list') or self.course_list is None:
-                return
-                
-            search_term = self.search_var.get().lower()
-            selected_dept = self.dept_var.get()
-            self.course_list.delete(0, tk.END)
-            
-            if selected_dept == "All":
-                # Show all courses from all departments
-                for dept, dept_courses in courses["University of South Florida"].items():
-                    for course_code, course_info in dept_courses.items():
-                        course_name = course_info.get("Class Full Name", "")
-                        if (not search_term or 
-                            search_term in course_code.lower() or 
-                            search_term in course_name.lower()):
-                            self.course_list.insert(tk.END, f"{dept} {course_code} - {course_name}")
-            else:
-                # Show courses from selected department
-                dept_courses = courses["University of South Florida"].get(selected_dept, {})
+        if selected_dept == "All":
+            # Show all courses from all departments
+            for dept, dept_courses in usf_courses.items():
                 for course_code, course_info in dept_courses.items():
-                    course_name = course_info.get("Class Full Name", "")
+                    # Check if course matches search term
                     if (not search_term or 
-                        search_term in course_code.lower() or 
-                        search_term in course_name.lower()):
-                        self.course_list.insert(tk.END, f"{course_code} - {course_name}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to update course list: {str(e)}")
-        
-    def show_course_details(self, event):
-        selection = self.course_list.curselection()
-        if not selection:
-            return
+                        search_term in f"{dept} {course_code}".lower() or
+                        search_term in course_info['Class Full Name'].lower() or
+                        search_term in str(course_info['Credit Hours']).lower()):
+                        
+                        prereqs = self.decode_requirement(course_info.get('Prereqs', 'N/A'))
+                        coreqs = self.decode_requirement(course_info.get('Coreqs', 'N/A'))
+                        
+                        self.course_list.insert("", tk.END, values=(
+                            f"{dept} {course_code}",
+                            course_info['Class Full Name'],
+                            course_info['Credit Hours'],
+                            prereqs,
+                            coreqs
+                        ))
+        elif selected_dept in usf_courses:
+            # Show courses from selected department
+            dept_courses = usf_courses[selected_dept]
+            for course_code, course_info in dept_courses.items():
+                # Check if course matches search term
+                if (not search_term or 
+                    search_term in f"{selected_dept} {course_code}".lower() or
+                    search_term in course_info['Class Full Name'].lower() or
+                    search_term in str(course_info['Credit Hours']).lower()):
+                    
+                    prereqs = self.decode_requirement(course_info.get('Prereqs', 'N/A'))
+                    coreqs = self.decode_requirement(course_info.get('Coreqs', 'N/A'))
+                    
+                    self.course_list.insert("", tk.END, values=(
+                        f"{selected_dept} {course_code}",
+                        course_info['Class Full Name'],
+                        course_info['Credit Hours'],
+                        prereqs,
+                        coreqs
+                    ))
+
+    def decode_requirement(self, req, parent_op=None):
+        """Decode prerequisites/corequisites requirement structure"""
+        if req == 'N/A':
+            return 'None'
             
-        course_str = self.course_list.get(selection[0])
-        if self.dept_var.get() == "All":
-            dept, rest = course_str.split(' ', 1)
-            course_code = rest.split(' - ')[0]
-        else:
-            dept = self.dept_var.get()
-            course_code = course_str.split(' - ')[0]
-        
-        # Find course in catalog
-        course_info = courses["University of South Florida"][dept][course_code]
-        self.details_text.config(state='normal')
-        self.details_text.delete(1.0, tk.END)
-        
-        # Format course details
-        details = (
-            f"Course: {dept} {course_code}\n"
-            f"Name: {course_info['Class Full Name']}\n"
-            f"Credits: {course_info['Credit Hours']}\n"
-            f"Description: {course_info['Description']}\n"
-            f"Prerequisites: {self.format_requirements(course_info.get('Prereqs', 'N/A'))}\n"
-            f"Corequisites: {self.format_requirements(course_info.get('Coreqs', 'N/A'))}"
-        )
-        
-        self.details_text.insert(1.0, details)
-        self.details_text.config(state='disabled')
-                
-    def format_requirements(self, reqs):
-        """Format prerequisites or corequisites for display"""
-        if reqs == "N/A":
-            return "N/A"
-            
-        if isinstance(reqs, dict):
-            if "AND" in reqs:
-                return " AND ".join(self.format_requirement(r) for r in reqs["AND"])
-            elif "OR" in reqs:
-                return " OR ".join(self.format_requirement(r) for r in reqs["OR"])
-        elif isinstance(reqs, list):
-            return ", ".join(self.format_requirement(r) for r in reqs)
-            
-        return str(reqs)
-        
-    def format_requirement(self, req):
-        """Format a single requirement"""
         if isinstance(req, dict):
-            return f"{req['Department']} {req['Course Code']} (Grade: {req['Grade']})"
-        return str(req)
-                
-    def add_selected_course(self):
-        selection = self.course_list.curselection()
-        if not selection:
-            messagebox.showerror("Error", "Please select a course first!")
-            return
-            
-        course_str = self.course_list.get(selection[0])
-        if self.dept_var.get() == "All":
-            dept, rest = course_str.split(' ', 1)
-            course_code = rest.split(' - ')[0]
+            keys = list(req.keys())
+            if len(keys) == 1 and keys[0] in ["AND", "OR"]:
+                op = keys[0]
+                children = req[op]
+                sub_strings = [self.decode_requirement(child, parent_op=op) for child in children]
+                sub_strings = [s for s in sub_strings if s]
+                joined = f" {op} ".join(sub_strings)
+                if op == "OR" or (parent_op == "OR" and op == "AND"):
+                    return f"[{joined}]"
+                else:
+                    return joined
+            else:
+                dept = req.get("Department", "")
+                code = req.get("Course Code", "")
+                grade = req.get("Grade", "")
+                if dept or code or grade:
+                    if grade:
+                        return f"{dept} {code} (min grade {grade})"
+                    else:
+                        return f"{dept} {code}"
+                else:
+                    return ""
+        elif isinstance(req, list):
+            sub_strings = [self.decode_requirement(item, parent_op=parent_op) for item in req]
+            return " ".join(sub_strings)
         else:
-            dept = self.dept_var.get()
-            course_code = course_str.split(' - ')[0]
+            return str(req)
+
+    def add_selected_course(self):
+        if not self.course_list:
+            return
+
+        selected_items = self.course_list.selection()
+        if not selected_items:
+            return
+
+        # Get course information from the selected item
+        selected_item = selected_items[0]  # Get first selected item
+        values = self.course_list.item(selected_item)['values']
+        if not values:
+            return
+
+        # Parse course code into prefix and number
+        course_code = values[0]  # e.g., "EGN 3000"
+        prefix, number = course_code.split()
         
-        # Get course info
-        course_info = courses["University of South Florida"][dept][course_code]
-        course_data = {
-            "prefix": dept,
-            "number": course_code,
-            "name": course_info["Class Full Name"],
-            "credits": course_info["Credit Hours"]
+        # Get course info from the catalog
+        catalog_info = courses["University of South Florida"][prefix][number]
+        
+        # Create course info dictionary
+        course_info = {
+            "prefix": prefix,
+            "number": number,
+            "name": catalog_info['Class Full Name'],
+            "credits": catalog_info['Credit Hours'],
+            "is_manual": True  # Mark as manually added
         }
         
-        self.callback(self.semester, course_data)
+        self.flowchart_page.add_course_to_semester(course_info, self.semester)
         self.destroy()
+
+    def sort_column(self, col, reverse):
+        if not self.course_list:
+            return
+            
+        # Get all items in the Treeview
+        items = [(self.course_list.set(k, col), k) for k in self.course_list.get_children('')]
+        
+        # Sort items (handle numeric columns like Credits)
+        if col == "credits":
+            def get_credit_value(x):
+                try:
+                    return int(x[0])
+                except (ValueError, TypeError):
+                    return 0
+            items.sort(key=get_credit_value, reverse=reverse)
+        else:
+            items.sort(reverse=reverse)
+
+        # Rearrange items in the Treeview
+        for index, (val, k) in enumerate(items):
+            self.course_list.move(k, '', index)
+
+        # Toggle the sort direction for the next click
+        self.course_list.heading(col, command=lambda: self.sort_column(col, not reverse))
 
 class CourseDetailsPopup(tk.Toplevel):
     def __init__(self, parent, course_info):
         super().__init__(parent)
         self.title("Course Details")
         self.geometry("500x400")
+        self.parent = parent
         
         # Make window modal
         self.transient(parent)
@@ -289,26 +347,64 @@ class CourseDetailsPopup(tk.Toplevel):
         close_button = ttk.Button(
             self,
             text="Close",
-            command=self.destroy
+            command=self.on_close
         )
         close_button.pack(pady=10)
+
+        # Bind window close event
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+    def on_close(self):
+        # Clear any drag state in the parent
+        if hasattr(self.parent, 'drag_start_pos'):
+            self.parent.drag_start_pos = None
+        if hasattr(self.parent, 'drag_start_time'):
+            self.parent.drag_start_time = None
+        if hasattr(self.parent, 'dragged_items'):
+            self.parent.dragged_items = None
+        if hasattr(self.parent, 'dragged_tags'):
+            self.parent.dragged_tags = None
+        if hasattr(self.parent, 'original_positions'):
+            self.parent.original_positions = None
+        if hasattr(self.parent, 'drag_shadow'):
+            if self.parent.drag_shadow:
+                self.parent.canvas.delete(self.parent.drag_shadow)
+            self.parent.drag_shadow = None
+        if hasattr(self.parent, 'highlighted_semester'):
+            if self.parent.highlighted_semester:
+                self.parent.canvas.itemconfig(f"semester_{self.parent.highlighted_semester}", fill='lightblue')
+            self.parent.highlighted_semester = None
+        
+        # Destroy the window
+        self.destroy()
 
 class FlowchartPage(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-        self.courses = {}  # Dictionary to store courses by semester
-        self.dragged_item = None
+        self.courses = {}
+        self.column_width = 200
+        self.box_padding = 20
+        self.course_height = 40
+        self.drag_threshold = 5  # pixels to move before starting drag
+        self.drag_timer = None
+        self.drag_start_time = None
+        self.drag_start_pos = None
+        self.dragged_items = None
         self.dragged_tags = None
+        self.original_positions = None
         self.drag_shadow = None
         self.highlighted_semester = None
         self.create_widgets()
         
     def create_widgets(self):
         # Header
+        style = ttk.Style()
+        style.configure("Header.TLabel", background='#dcdad5',foreground='#006747')
         header = ttk.Label(
             self,
             text="Academic Flowchart",
-            font=("Helvetica", 14)
+            font=('Helvetica', 20, 'bold'),
+            style="Header.TLabel"
         )
         header.pack(pady=10)
         
@@ -343,14 +439,6 @@ class FlowchartPage(ttk.Frame):
         )
         add_semester_btn.pack(side='left', padx=5)
         
-        # Add course button
-        add_course_btn = ttk.Button(
-            control_frame,
-            text="Add Course",
-            command=self.add_course_dialog
-        )
-        add_course_btn.pack(side='left', padx=5)
-        
         # Clear flowchart button
         clear_btn = ttk.Button(
             control_frame,
@@ -366,7 +454,7 @@ class FlowchartPage(ttk.Frame):
         # Create canvas
         self.canvas = tk.Canvas(
             self.canvas_frame,
-            bg='white',
+            bg='#cad2d8',
             scrollregion=(0, 0, 2000, 2000)
         )
         
@@ -397,10 +485,8 @@ class FlowchartPage(ttk.Frame):
         
         # Initialize semester columns
         self.semester_columns = []
-        self.column_width = 250  # Width for course boxes
         self.box_height = 80  # Height for course boxes
         self.header_height = 40  # New smaller height for semester headers
-        self.box_padding = 10
         
         # Bind mouse wheel for scrolling
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
@@ -498,119 +584,151 @@ class FlowchartPage(ttk.Frame):
         ).pack(pady=10)
         
     def start_drag(self, event):
-        # Find the clicked item
-        x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
-        items = self.canvas.find_closest(x, y)
-        
-        if items:
-            tags = self.canvas.gettags(items[0])
-            # Only start drag if clicking on course box, not delete button or semester header
-            if ('course_box' in tags and 
-                not any(tag.startswith('delete_') for tag in tags) and
-                not any(tag.startswith('semester_') for tag in tags)):
-                # Find the course tag (format: semester_index)
-                course_tag = next((tag for tag in tags if '_' in tag and not any(tag.startswith(prefix) for prefix in ['delete_', 'course_', 'semester_'])), None)
-                if course_tag:
-                    self.dragged_items = self.canvas.find_withtag(course_tag)
-                    self.dragged_tags = tags
-                    
-                    # Store original positions and dimensions
-                    self.original_positions = []
-                    for item in self.dragged_items:
-                        bbox = self.canvas.bbox(item)
-                        if bbox:
-                            self.original_positions.append({
-                                'item': item,
-                                'x': bbox[0],
-                                'y': bbox[1],
-                                'width': bbox[2] - bbox[0],
-                                'height': bbox[3] - bbox[1]
-                            })
-                    
-                    # Create shadow effect
-                    if self.original_positions:
-                        first_item = self.original_positions[0]
-                        self.drag_shadow = self.canvas.create_rectangle(
-                            first_item['x'], first_item['y'],
-                            first_item['x'] + first_item['width'],
-                            first_item['y'] + first_item['height'],
-                            fill='gray',
-                            outline='black',
-                            stipple='gray50',
-                            tags='shadow'
-                        )
-                        self.canvas.tag_lower(self.drag_shadow)
-                        
-                        # Raise all dragged items above the shadow but below semester headers
-                        for pos in self.original_positions:
-                            self.canvas.tag_raise(pos['item'])
-                            # Ensure semester headers stay on top
-                            for semester in self.courses.keys():
-                                self.canvas.tag_raise(f"semester_{semester}")
-                
-    def drag(self, event):
-        if hasattr(self, 'dragged_items') and self.dragged_items:
-            # Move the dragged items and shadow
-            x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        # Cancel any existing drag timer
+        if self.drag_timer:
+            self.after_cancel(self.drag_timer)
+            self.drag_timer = None
+
+        # Store initial position and start timer
+        self.drag_start_pos = (event.x, event.y)
+        self.drag_start_time = time.time()
+        self.drag_timer = self.after(200, self.check_drag_start, event)  # 200ms delay
+
+    def check_drag_start(self, event):
+        if not hasattr(self, 'drag_start_pos') or not self.drag_start_pos:
+            return
             
-            # Calculate offset from original position
-            if self.original_positions:
-                first_item = self.original_positions[0]
-                offset_x = x - first_item['x']
-                offset_y = y - first_item['y']
-                
-                # Update positions of all dragged items
-                for pos in self.original_positions:
-                    if self.canvas.type(pos['item']) == 'rectangle':
-                        self.canvas.coords(
-                            pos['item'],
-                            pos['x'] + offset_x,
-                            pos['y'] + offset_y,
-                            pos['x'] + offset_x + pos['width'],
-                            pos['y'] + offset_y + pos['height']
-                        )
-                    else:  # text item
-                        self.canvas.coords(
-                            pos['item'],
-                            pos['x'] + offset_x + pos['width']/2,
-                            pos['y'] + offset_y + pos['height']/2
-                        )
-                
-                # Update shadow position
-                if self.drag_shadow:
+        # Check if mouse is still at roughly the same position
+        current_pos = (event.x, event.y)
+        dx = abs(current_pos[0] - self.drag_start_pos[0])
+        dy = abs(current_pos[1] - self.drag_start_pos[1])
+        
+        if dx < self.drag_threshold and dy < self.drag_threshold:
+            # Find the clicked item
+            x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+            items = self.canvas.find_closest(x, y)
+
+            if items:
+                tags = self.canvas.gettags(items[0])
+                # Only start drag if clicking on course box, not delete button or semester header
+                if ('course_box' in tags and 
+                    not any(tag.startswith('delete_') for tag in tags) and
+                    not any(tag.startswith('semester_') for tag in tags)):
+                    # Find the course tag (format: semester_index)
+                    course_tag = next((tag for tag in tags if '_' in tag and not any(tag.startswith(prefix) for prefix in ['delete_', 'course_', 'semester_'])), '')
+                    if course_tag:
+                        self.dragged_course = course_tag
+                        self.dragged_items = self.canvas.find_withtag(course_tag)
+                        self.dragged_tags = tags
+
+                        # Store original positions and dimensions
+                        self.original_positions = []
+                        for item in self.dragged_items:
+                            bbox = self.canvas.bbox(item)
+                            if bbox:
+                                self.original_positions.append({
+                                    'item': item,
+                                    'x': bbox[0],
+                                    'y': bbox[1],
+                                    'width': bbox[2] - bbox[0],
+                                    'height': bbox[3] - bbox[1]
+                                })
+
+                        # Create shadow effect
+                        if self.original_positions:
+                            first_item = self.original_positions[0]
+                            self.drag_shadow = self.canvas.create_rectangle(
+                                first_item['x'], first_item['y'],
+                                first_item['x'] + first_item['width'],
+                                first_item['y'] + first_item['height'],
+                                fill='gray',
+                                outline='black',
+                                stipple='gray50',
+                                tags='shadow'
+                            )
+                            self.canvas.tag_lower(self.drag_shadow)
+
+                            # Raise all dragged items above the shadow but below semester headers
+                            for pos in self.original_positions:
+                                self.canvas.tag_raise(pos['item'])
+                                # Ensure semester headers stay on top
+                                for semester in self.courses.keys():
+                                    self.canvas.tag_raise(f"semester_{semester}")
+
+    def drag(self, event):
+        if not hasattr(self, 'dragged_items') or not self.dragged_items:
+            return
+            
+        # Move the dragged items and shadow
+        x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        
+        # Calculate offset from original position
+        if self.original_positions:
+            first_item = self.original_positions[0]
+            # Calculate center offset
+            center_x = first_item['x'] + first_item['width']/2
+            center_y = first_item['y'] + first_item['height']/2
+            offset_x = x - center_x
+            offset_y = y - center_y
+            
+            # Update positions of all dragged items
+            for pos in self.original_positions:
+                if self.canvas.type(pos['item']) == 'rectangle':
                     self.canvas.coords(
-                        self.drag_shadow,
-                        x, y,
-                        x + first_item['width'],
-                        y + first_item['height']
+                        pos['item'],
+                        pos['x'] + offset_x,
+                        pos['y'] + offset_y,
+                        pos['x'] + offset_x + pos['width'],
+                        pos['y'] + offset_y + pos['height']
+                    )
+                else:  # text item
+                    self.canvas.coords(
+                        pos['item'],
+                        pos['x'] + offset_x + pos['width']/2,
+                        pos['y'] + offset_y + pos['height']/2
                     )
             
-            # Check for semester highlight
-            sorted_semesters = self.get_sorted_semesters()
-            for i, semester in enumerate(sorted_semesters):
-                column_x = i * (self.column_width + self.box_padding) + self.box_padding
-                if column_x <= x <= column_x + self.column_width:
-                    if self.highlighted_semester != semester:
-                        # Remove old highlight
-                        if self.highlighted_semester:
-                            self.canvas.itemconfig(f"semester_{self.highlighted_semester}", fill='lightblue')
-                        
-                        # Add new highlight
-                        self.highlighted_semester = semester
-                        self.canvas.itemconfig(f"semester_{semester}", fill='lightgreen')
-                    break
-            else:
-                # Remove highlight if not over any semester
-                if self.highlighted_semester:
-                    self.canvas.itemconfig(f"semester_{self.highlighted_semester}", fill='lightblue')
-                    self.highlighted_semester = None
-            
-            # Ensure semester headers stay on top
-            for semester in self.courses.keys():
-                self.canvas.tag_raise(f"semester_{semester}")
-            
+            # Update shadow position
+            if self.drag_shadow:
+                self.canvas.coords(
+                    self.drag_shadow,
+                    x - first_item['width']/2,
+                    y - first_item['height']/2,
+                    x + first_item['width']/2,
+                    y + first_item['height']/2
+                )
+        
+        # Check for semester highlight
+        sorted_semesters = self.get_sorted_semesters()
+        for i, semester in enumerate(sorted_semesters):
+            column_x = i * (self.column_width + self.box_padding) + self.box_padding
+            if column_x <= x <= column_x + self.column_width:
+                if self.highlighted_semester != semester:
+                    # Remove old highlight
+                    if self.highlighted_semester:
+                        self.canvas.itemconfig(f"semester_{self.highlighted_semester}", fill='lightblue')
+                    
+                    # Add new highlight
+                    self.highlighted_semester = semester
+                    self.canvas.itemconfig(f"semester_{semester}", fill='lightgreen')
+                break
+        else:
+            # Remove highlight if not over any semester
+            if self.highlighted_semester:
+                self.canvas.itemconfig(f"semester_{self.highlighted_semester}", fill='lightblue')
+                self.highlighted_semester = None
+
     def end_drag(self, event):
-        if hasattr(self, 'dragged_items') and self.dragged_items:
+        # Cancel any pending drag timer
+        if self.drag_timer:
+            self.after_cancel(self.drag_timer)
+            self.drag_timer = None
+            
+        # Reset drag state
+        self.drag_start_pos = None
+        self.drag_start_time = None
+        
+        if hasattr(self, 'dragged_items') and self.dragged_items and hasattr(self, 'dragged_tags') and self.dragged_tags:
             # Get the original semester and course index
             original_semester = None
             course_index = None
@@ -629,35 +747,39 @@ class FlowchartPage(ttk.Frame):
             
             # Track if we need to update the flowchart
             need_update = False
+            move_course = False
+            dropped_in_valid_column = False
+            target_semester = None
             
             # Find which semester column the course was dropped in
             for i, semester in enumerate(sorted_semesters):
                 column_x = i * (self.column_width + self.box_padding) + self.box_padding
                 if column_x <= x <= column_x + self.column_width:
-                    # Only proceed if we're actually moving to a different semester
-                    if original_semester != semester:
-                        # Check if it's a transfer course
-                        if (original_semester in self.courses and 
-                            0 <= course_index < len(self.courses[original_semester]) and
-                            self.courses[original_semester][course_index].get('is_transfer', False)):
-                            
-                            # Show warning
-                            if not messagebox.askyesno("Warning", 
-                                "This is a transfer course. Moving it to a different semester might affect your academic progress. Are you sure you want to move it?"):
-                                # If user selects "No", cancel the move
-                                need_update = True
-                                break
-                        
-                        # Move course to new semester
-                        course = self.courses[original_semester].pop(course_index)
-                        self.courses[semester].append(course)
-                        need_update = True
+                    dropped_in_valid_column = True
+                    target_semester = semester
                     break
             
-            # Clean up
-            self.dragged_items = None
-            self.dragged_tags = None
-            self.original_positions = None
+            # Handle the drop
+            if dropped_in_valid_column and target_semester and original_semester and course_index is not None:
+                if original_semester != target_semester:
+                    # Check if it's a transfer course
+                    if (original_semester in self.courses and 
+                        0 <= course_index < len(self.courses[original_semester]) and
+                        self.courses[original_semester][course_index].get('is_transfer', False)):
+                        # Show warning
+                        if messagebox.askyesno("Warning", 
+                            "This is a transfer course. Moving it to a different semester might affect your academic progress. Are you sure you want to move it?"):
+                            move_course = True
+                    else:
+                        move_course = True
+                        
+                    if move_course:
+                        # Move course to new semester
+                        course = self.courses[original_semester].pop(course_index)
+                        self.courses[target_semester].append(course)
+                        need_update = True
+            
+            # Clean up drag shadow and highlight
             if self.drag_shadow:
                 self.canvas.delete(self.drag_shadow)
                 self.drag_shadow = None
@@ -665,10 +787,80 @@ class FlowchartPage(ttk.Frame):
                 self.canvas.itemconfig(f"semester_{self.highlighted_semester}", fill='lightblue')
                 self.highlighted_semester = None
             
-            # Only update the flowchart if we actually moved something or need to reset
+            # If we're not moving the course, return it to its original position
+            if not move_course:
+                self.return_items_to_original_position()
+                # Ensure semester headers are visible and on top
+                for semester in self.courses.keys():
+                    # Recreate semester header if needed
+                    i = sorted_semesters.index(semester)
+                    x = i * (self.column_width + self.box_padding) + self.box_padding
+                    
+                    # Check for both box and text
+                    header_box = self.canvas.find_withtag(f"semester_{semester}_box")
+                    header_text = self.canvas.find_withtag(f"semester_{semester}_text")
+                    
+                    if not header_box:
+                        # Recreate header box
+                        self.canvas.create_rectangle(
+                            x, self.box_padding,
+                            x + self.column_width, self.box_padding + self.header_height,
+                            fill='lightblue',
+                            outline='black',
+                            tags=('semester_header', f'semester_{semester}_box')
+                        )
+                    
+                    if not header_text:
+                        # Recreate header text
+                        self.canvas.create_text(
+                            x + self.column_width/2,
+                            self.box_padding + self.header_height/2,
+                            text=semester,
+                            font=('Helvetica', 12, 'bold'),
+                            tags=('semester_header', f'semester_{semester}_text')
+                        )
+                    
+                    # Ensure headers are on top
+                    self.canvas.tag_raise(f"semester_{semester}_box")
+                    self.canvas.tag_raise(f"semester_{semester}_text")
+            
+            # Clean up drag state
+            self.dragged_items = None
+            self.dragged_tags = None
+            self.original_positions = None
+            
+            # Update the flowchart if needed
             if need_update:
                 self.update_flowchart()
+
+    def return_items_to_original_position(self):
+        """Return dragged items to their original positions"""
+        if not self.original_positions:
+            return
             
+        for pos in self.original_positions:
+            if not self.canvas.winfo_exists():
+                return
+                
+            try:
+                if self.canvas.type(pos['item']) == 'rectangle':
+                    self.canvas.coords(
+                        pos['item'],
+                        pos['x'],
+                        pos['y'],
+                        pos['x'] + pos['width'],
+                        pos['y'] + pos['height']
+                    )
+                else:  # text item
+                    self.canvas.coords(
+                        pos['item'],
+                        pos['x'] + pos['width']/2,
+                        pos['y'] + pos['height']/2
+                    )
+            except tk.TclError:
+                # Item might have been deleted
+                continue
+
     def clear_flowchart(self):
         if messagebox.askyesno("Clear Flowchart", "Are you sure you want to clear the entire flowchart?"):
             self.courses = {}
@@ -685,8 +877,14 @@ class FlowchartPage(ttk.Frame):
         
     def remove_course(self, semester, course_index):
         if semester in self.courses and 0 <= course_index < len(self.courses[semester]):
-            del self.courses[semester][course_index]
-            self.update_flowchart()
+            course = self.courses[semester][course_index]
+            course_name = f"{course['prefix']} {course['number']}: {course['name']}"
+            
+            if messagebox.askyesno("Delete Course", 
+                                 f"Are you sure you want to delete this course?\n\n{course_name}",
+                                 icon='warning'):
+                del self.courses[semester][course_index]
+                self.update_flowchart()
             
     def get_semester_order(self, semester):
         """Convert semester name to a sortable value"""
@@ -727,14 +925,14 @@ class FlowchartPage(ttk.Frame):
                 x + self.column_width, self.box_padding + self.header_height,
                 fill='lightblue',
                 outline='black',
-                tags=('semester_header', f'semester_{semester}')
+                tags=('semester_header', f'semester_{semester}_box')
             )
             header_text = self.canvas.create_text(
                 x + self.column_width/2,
                 self.box_padding + self.header_height/2,
                 text=semester,
-                font=('Helvetica', 10, 'bold'),
-                tags=('semester_header', f'semester_{semester}')
+                font=('Helvetica', 12, 'bold'),
+                tags=('semester_header', f'semester_{semester}_text')
             )
             
             # Draw course boxes starting immediately after header
@@ -749,15 +947,19 @@ class FlowchartPage(ttk.Frame):
                 else:
                     box_fill = 'white'  # Regular transcript courses
                 
+                # Create course box group tag for all elements of this course
+                course_group_tag = f'{semester}_{j}'
+                
+                # Main course box
                 box = self.canvas.create_rectangle(
                     x, y,
                     x + self.column_width, y + self.box_height,
                     fill=box_fill,
                     outline='black',
-                    tags=('course_box', f'{semester}_{j}')
+                    tags=('course_box', course_group_tag)
                 )
                 
-                # Add course text with more details
+                # Course text
                 course_text = (
                     f"{course['prefix']} {course['number']}\n"
                     f"{course['name']}\n"
@@ -766,7 +968,11 @@ class FlowchartPage(ttk.Frame):
                 
                 # Add transfer label if applicable
                 if course.get('is_transfer', False):
-                    course_text += f"\nTransfer: {course.get('college', 'Unknown')}"
+                    college = course.get('college', 'Unknown')
+                    # Abbreviate The University of South Florida to USF
+                    if college == "The University of South Florida":
+                        college = "USF"
+                    course_text += f"\nTransfer: {college}"
                 elif course.get('is_manual', False):
                     course_text += "\nManually Added"
                 
@@ -776,22 +982,31 @@ class FlowchartPage(ttk.Frame):
                     text=course_text,
                     font=('Helvetica', 9),
                     justify='center',
-                    tags=('course_box', f'{semester}_{j}')
+                    tags=('course_box', course_group_tag)
                 )
                 
-                # Add delete button
+                # Delete button - create as a group
+                delete_btn_size = 20
+                delete_btn_x = x + self.column_width - delete_btn_size
+                delete_btn_y = y
+                
+                # Delete button background
                 delete_btn = self.canvas.create_rectangle(
-                    x + self.column_width - 20, y,
-                    x + self.column_width, y + 20,
+                    delete_btn_x, delete_btn_y,
+                    delete_btn_x + delete_btn_size, delete_btn_y + delete_btn_size,
                     fill='red',
                     outline='black',
-                    tags=('delete_btn', f'delete_{semester}_{j}')
+                    tags=('delete_btn', f'delete_{semester}_{j}', course_group_tag)
                 )
+                
+                # Delete button X
                 self.canvas.create_text(
-                    x + self.column_width - 10, y + 10,
+                    delete_btn_x + delete_btn_size/2,
+                    delete_btn_y + delete_btn_size/2,
                     text='X',
+                    fill='white',
                     font=('Helvetica', 8, 'bold'),
-                    tags=('delete_btn', f'delete_{semester}_{j}')
+                    tags=('delete_btn', f'delete_{semester}_{j}', course_group_tag)
                 )
                 
                 # Bind delete button with specific tag
@@ -836,7 +1051,7 @@ class FlowchartPage(ttk.Frame):
         self.canvas.configure(scrollregion=(0, 0, total_width, total_height))
         
     def open_course_catalog(self, semester):
-        CourseCatalogPopup(self, semester, self.add_course)
+        CourseCatalogPopup(self, semester, self)
         
     def load_from_transcript(self, transcript_data):
         """Load courses from transcript data"""
@@ -885,6 +1100,19 @@ class FlowchartPage(ttk.Frame):
             tags = self.canvas.gettags(items[0])
             # Check if we clicked on a course box
             if 'course_box' in tags:
+                # Clear any existing drag state
+                self.drag_start_pos = None
+                self.drag_start_time = None
+                self.dragged_items = None
+                self.dragged_tags = None
+                self.original_positions = None
+                if self.drag_shadow:
+                    self.canvas.delete(self.drag_shadow)
+                    self.drag_shadow = None
+                if self.highlighted_semester:
+                    self.canvas.itemconfig(f"semester_{self.highlighted_semester}", fill='lightblue')
+                    self.highlighted_semester = None
+                
                 # Find the semester_index tag
                 course_tag = next((tag for tag in tags 
                                  if '_' in tag and 
@@ -900,3 +1128,14 @@ class FlowchartPage(ttk.Frame):
                         CourseDetailsPopup(self, course_info)
                     except (ValueError, KeyError, IndexError):
                         pass
+
+    def add_course_to_semester(self, course_info, semester):
+        """Add a course to the specified semester"""
+        if semester not in self.courses:
+            self.courses[semester] = []
+            
+        # Add the course to the semester
+        self.courses[semester].append(course_info)
+        
+        # Update the flowchart display
+        self.update_flowchart()

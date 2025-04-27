@@ -30,8 +30,8 @@ class CourseDetailsWindow(tk.Toplevel):
         # Format and display course details
         details = f"Course: {course_info['Class Full Name']}\n\n"
         details += f"Description:\n{course_info['Description']}\n\n"
-        details += f"Prerequisites: {self.format_prerequisites(course_info.get('Prereqs', 'N/A'))}\n"
-        details += f"Corequisites: {self.format_prerequisites(course_info.get('Coreqs', 'N/A'))}\n"
+        details += f"Prerequisites: {parent.decode_requirement(course_info.get('Prereqs', 'N/A'))}\n"
+        details += f"Corequisites: {parent.decode_requirement(course_info.get('Coreqs', 'N/A'))}\n"
         details += f"Credit Hours: {course_info['Credit Hours']}"
         
         self.details_text.insert('1.0', details)
@@ -44,42 +44,86 @@ class CourseDetailsWindow(tk.Toplevel):
             command=self.destroy
         )
         close_button.pack(pady=10)
-    
-    def format_prerequisites(self, prereqs):
-        if prereqs == 'N/A':
-            return 'None'
-        if isinstance(prereqs, dict):
-            if 'AND' in prereqs:
-                return ' AND '.join(self.format_prerequisites(p) for p in prereqs['AND'])
-            if 'OR' in prereqs:
-                return ' OR '.join(self.format_prerequisites(p) for p in prereqs['OR'])
-            return f"{prereqs['Department']} {prereqs['Course Code']} (min grade: {prereqs['Grade']})"
-        return str(prereqs)
 
 class CourseCatalogPage(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-        self.create_widgets()
-        
-    def create_widgets(self):
-        # Header
-        header = ttk.Label(
-            self,
-            text="Course Catalog",
-            font=("Helvetica", 14)
+        # Create and configure styles
+        # STYLES IN __init__
+        #################################################################################################################
+        style = ttk.Style()
+
+        # Controls the main content area background color (light blue/gray)
+        style.configure('Catalog.TFrame', background='#a9a7a3')
+
+        # Controls the left panel background color (gray)
+        style.configure('LeftPanel.TFrame', background='#a9a7a3')
+
+        # Controls the label frames (University, Department, Search boxes) in the left panel
+        style.configure('Dark.TLabelframe', background='#a9a7a3', foreground='#303434')
+        style.configure('Dark.TLabelframe.Label', background='#a9a7a3', foreground='#303434', anchor='center')
+
+        # Controls the dropdown menus appearance (University and Department dropdowns)
+        style.configure('Dark.TCombobox', fieldbackground='#CAD2D8', foreground='#303434')
+
+        # Controls the search entry box appearance
+        style.configure('Dark.TEntry', fieldbackground='#CAD2D8', foreground='#303434')
+
+        # Controls the "Course Catalog" header appearance
+        style.configure('Header.TLabel', background='#a9a7a3', foreground='#006747', font=('Helvetica', 20, 'bold'))
+        # - background: gray background
+        # - foreground: USF green text color
+        # - font: Bold Helvetica, size 20
+
+        # Controls the main course list table appearance
+        style.configure('Treeview', 
+            background='#CAD2D8',        # Row background color
+            fieldbackground='#CAD2D8',   # Table background color
+            rowheight=30                 # Height of each row
         )
+
+        # Controls the table column headers appearance
+        style.configure('Treeview.Heading', 
+            background='#a9a7a3',        # Header background color
+            foreground='#006747',        # Header text color (USF green)
+            font=('Helvetica', 12, 'bold') # Header font
+        )
+
+        # Controls the selected row appearance in the table
+        style.map('Treeview', background=[('selected', '#a9a7a3')])  # Selected row color
+
+        # IN create_widgets:
+        # Creates a frame for the header with matching background
+        header_frame = tk.Frame(self, bg='#a9a7a3', bd=1, relief='flat')
+        # - bg: gray background
+        # - bd: border width
+        # - relief: border style
+
+        # Places the header frame at the top, stretching horizontally
+        header_frame.pack(fill='x')
+
+        # Creates the "Course Catalog" label inside the header frame
+        header = ttk.Label(
+            header_frame,                # Parent frame
+            text="Course Catalog",       # Text to display
+            style='Header.TLabel',       # Uses the style defined above
+            anchor='center',             # Centers the text
+            background='#a9a7a3'         # Matches the frame background
+        )
+
+        # Places the header with padding above and below
         header.pack(pady=10)
-        
+        ########################################################################################################################
         # Create main container
-        main_container = ttk.Frame(self)
+        main_container = ttk.Frame(self, style='Catalog.TFrame')
         main_container.pack(fill='both', expand=True, padx=10, pady=5)
         
         # Create left panel for filters
-        left_panel = ttk.Frame(main_container)
+        left_panel = ttk.Frame(main_container, style='LeftPanel.TFrame')
         left_panel.pack(side='left', fill='y', padx=5)
         
         # University selection
-        university_frame = ttk.LabelFrame(left_panel, text="University")
+        university_frame = ttk.LabelFrame(left_panel, text="University", style='Dark.TLabelframe', labelanchor='n')
         university_frame.pack(fill='x', pady=5)
         
         self.university_var = tk.StringVar()
@@ -88,13 +132,14 @@ class CourseCatalogPage(ttk.Frame):
             textvariable=self.university_var,
             values=list(courses.keys()),
             state="readonly",
-            width=30
+            width=30,
+            style='Dark.TCombobox'
         )
         university_combo.pack(fill='x', padx=10, pady=5)
         university_combo.bind('<<ComboboxSelected>>', self.update_departments)
         
         # Department selection
-        department_frame = ttk.LabelFrame(left_panel, text="Department")
+        department_frame = ttk.LabelFrame(left_panel, text="Department", style='Dark.TLabelframe', labelanchor='n')
         department_frame.pack(fill='x', pady=5)
         
         self.department_var = tk.StringVar()
@@ -102,37 +147,39 @@ class CourseCatalogPage(ttk.Frame):
             department_frame,
             textvariable=self.department_var,
             state="readonly",
-            width=15  # Half of university width
+            width=15,
+            style='Dark.TCombobox'
         )
         self.department_combo.pack(fill='x', padx=10, pady=5)
         self.department_combo.bind('<<ComboboxSelected>>', self.update_courses)
         
         # Search frame
-        search_frame = ttk.LabelFrame(left_panel, text="Search")
+        search_frame = ttk.LabelFrame(left_panel, text="Search", style='Dark.TLabelframe', labelanchor='n')
         search_frame.pack(fill='x', pady=5)
         
-        self.search_var = tk.StringVar()
-        search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
+        self.search_var = tk.StringVar() #bg is the search bar color
+        search_entry = tk.Entry(search_frame, textvariable=self.search_var, bg='#dcdad5', fg='#303434', relief='flat', highlightthickness=1, highlightbackground='#303434', insertbackground='#303434', justify='center')
         search_entry.pack(fill='x', padx=5, pady=5)
         search_entry.bind('<KeyRelease>', self.search_courses)
         
         # Create right panel for course list
-        right_panel = ttk.Frame(main_container)
+        right_panel = ttk.Frame(main_container, style='Catalog.TFrame')
         right_panel.pack(side='right', fill='both', expand=True, padx=5)
         
         # Course list
         self.course_list = ttk.Treeview(
             right_panel,
             columns=("Code", "Name", "Credits", "Prerequisites", "Corequisites"),
-            show="headings"
+            show="headings",
+            style='Treeview'
         )
         
         # Define headings and center them
-        self.course_list.heading("Code", text="Course Code", anchor='center')
-        self.course_list.heading("Name", text="Course Name", anchor='w')
-        self.course_list.heading("Credits", text="Credits", anchor='center')
-        self.course_list.heading("Prerequisites", text="Prerequisites", anchor='w')
-        self.course_list.heading("Corequisites", text="Corequisites", anchor='w')
+        self.course_list.heading("Code", text="Course Code", anchor='center', command=lambda: self.sort_column("Code", False))
+        self.course_list.heading("Name", text="Course Name", anchor='w', command=lambda: self.sort_column("Name", False))
+        self.course_list.heading("Credits", text="Credits", anchor='center', command=lambda: self.sort_column("Credits", False))
+        self.course_list.heading("Prerequisites", text="Prerequisites", anchor='w', command=lambda: self.sort_column("Prerequisites", False))
+        self.course_list.heading("Corequisites", text="Corequisites", anchor='w', command=lambda: self.sort_column("Corequisites", False))
         
         # Set column widths and alignment
         self.course_list.column("Code", width=100, anchor='center')
@@ -164,6 +211,58 @@ class CourseCatalogPage(ttk.Frame):
             self.department_var.set("All")
             self.update_courses()
     
+    def decode_requirement(self, req, parent_op=None, top_level=False):
+        """
+        Recursively deciphers a nested prerequisite/corequisite structure.
+        
+        If req is a dictionary with a single key "AND" or "OR", it processes the list of
+        requirements under that operator. For a leaf requirement (with keys "Department",
+        "Course Code", "Grade"), it returns a string in the form:
+        "DEPT CODE (min grade GRADE)".
+        
+        Now, every OR group is enclosed in square brackets. Additionally, an AND group that is 
+        nested inside an OR group is also enclosed in square brackets.
+        """
+        if req == 'N/A':
+            return 'None'
+            
+        if isinstance(req, dict):
+            keys = list(req.keys())
+            # Check if this dict represents a group with an operator.
+            if len(keys) == 1 and keys[0] in ["AND", "OR"]:
+                op = keys[0]
+                children = req[op]
+                # Process each child; pass the current operator as parent_op.
+                sub_strings = [self.decode_requirement(child, parent_op=op, top_level=False) for child in children]
+                # Filter out any empty strings.
+                sub_strings = [s for s in sub_strings if s]
+                # Join using the operator.
+                joined = f" {op} ".join(sub_strings)
+                # Always enclose OR groups in brackets.
+                # Also, if an AND group is nested inside an OR group, enclose it.
+                if op == "OR" or (parent_op == "OR" and op == "AND"):
+                    return f"[{joined}]"
+                else:
+                    return joined
+            else:
+                # It's a leaf requirement.
+                dept = req.get("Department", "")
+                code = req.get("Course Code", "")
+                grade = req.get("Grade", "")
+                if dept or code or grade:
+                    if grade:
+                        return f"{dept} {code} (min grade {grade})"
+                    else:
+                        return f"{dept} {code}"
+                else:
+                    return ""
+        elif isinstance(req, list):
+            # If req is a list, join the items.
+            sub_strings = [self.decode_requirement(item, parent_op=parent_op, top_level=top_level) for item in req]
+            return " ".join(sub_strings)
+        else:
+            return str(req)
+            
     def update_courses(self, event=None):
         university = self.university_var.get()
         department = self.department_var.get()
@@ -177,8 +276,8 @@ class CourseCatalogPage(ttk.Frame):
                 # Show all courses from all departments
                 for dept, dept_courses in courses[university].items():
                     for course_code, course_info in dept_courses.items():
-                        prereqs = self.format_prerequisites(course_info.get('Prereqs', 'N/A'))
-                        coreqs = self.format_prerequisites(course_info.get('Coreqs', 'N/A'))
+                        prereqs = self.decode_requirement(course_info.get('Prereqs', 'N/A'))
+                        coreqs = self.decode_requirement(course_info.get('Coreqs', 'N/A'))
                         self.course_list.insert("", "end", values=(
                             f"{dept} {course_code}",
                             course_info['Class Full Name'],
@@ -189,8 +288,8 @@ class CourseCatalogPage(ttk.Frame):
             elif department in courses[university]:
                 # Show courses from selected department
                 for course_code, course_info in courses[university][department].items():
-                    prereqs = self.format_prerequisites(course_info.get('Prereqs', 'N/A'))
-                    coreqs = self.format_prerequisites(course_info.get('Coreqs', 'N/A'))
+                    prereqs = self.decode_requirement(course_info.get('Prereqs', 'N/A'))
+                    coreqs = self.decode_requirement(course_info.get('Coreqs', 'N/A'))
                     self.course_list.insert("", "end", values=(
                         f"{department} {course_code}",
                         course_info['Class Full Name'],
@@ -199,17 +298,28 @@ class CourseCatalogPage(ttk.Frame):
                         coreqs
                     ))
     
-    def format_prerequisites(self, prereqs):
-        if prereqs == 'N/A':
-            return 'None'
-        if isinstance(prereqs, dict):
-            if 'AND' in prereqs:
-                return ' AND '.join(self.format_prerequisites(p) for p in prereqs['AND'])
-            if 'OR' in prereqs:
-                return ' OR '.join(self.format_prerequisites(p) for p in prereqs['OR'])
-            return f"{prereqs['Department']} {prereqs['Course Code']} (min grade: {prereqs['Grade']})"
-        return str(prereqs)
-    
+    def sort_column(self, col, reverse):
+        # Get all items in the Treeview
+        items = [(self.course_list.set(k, col), k) for k in self.course_list.get_children('')]
+        
+        # Sort items (handle numeric columns like Credits)
+        if col == "Credits":
+            def get_credit_value(x):
+                try:
+                    return int(x[0])
+                except (ValueError, TypeError):
+                    return 0
+            items.sort(key=get_credit_value, reverse=reverse)
+        else:
+            items.sort(reverse=reverse)
+
+        # Rearrange items in the Treeview
+        for index, (val, k) in enumerate(items):
+            self.course_list.move(k, '', index)
+
+        # Toggle the sort direction for the next click
+        self.course_list.heading(col, command=lambda: self.sort_column(col, not reverse))
+
     def search_courses(self, event=None):
         search_term = self.search_var.get().lower()
         
@@ -229,11 +339,11 @@ class CourseCatalogPage(ttk.Frame):
                         if (search_term in f"{dept} {course_code}".lower() or
                             search_term in course_info['Class Full Name'].lower() or
                             search_term in str(course_info['Credit Hours']).lower() or
-                            search_term in self.format_prerequisites(course_info.get('Prereqs', 'N/A')).lower() or
-                            search_term in self.format_prerequisites(course_info.get('Coreqs', 'N/A')).lower()):
+                            search_term in self.decode_requirement(course_info.get('Prereqs', 'N/A')).lower() or
+                            search_term in self.decode_requirement(course_info.get('Coreqs', 'N/A')).lower()):
                             
-                            prereqs = self.format_prerequisites(course_info.get('Prereqs', 'N/A'))
-                            coreqs = self.format_prerequisites(course_info.get('Coreqs', 'N/A'))
+                            prereqs = self.decode_requirement(course_info.get('Prereqs', 'N/A'))
+                            coreqs = self.decode_requirement(course_info.get('Coreqs', 'N/A'))
                             self.course_list.insert("", "end", values=(
                                 f"{dept} {course_code}",
                                 course_info['Class Full Name'],
@@ -248,11 +358,11 @@ class CourseCatalogPage(ttk.Frame):
                     if (search_term in f"{department} {course_code}".lower() or
                         search_term in course_info['Class Full Name'].lower() or
                         search_term in str(course_info['Credit Hours']).lower() or
-                        search_term in self.format_prerequisites(course_info.get('Prereqs', 'N/A')).lower() or
-                        search_term in self.format_prerequisites(course_info.get('Coreqs', 'N/A')).lower()):
+                        search_term in self.decode_requirement(course_info.get('Prereqs', 'N/A')).lower() or
+                        search_term in self.decode_requirement(course_info.get('Coreqs', 'N/A')).lower()):
                         
-                        prereqs = self.format_prerequisites(course_info.get('Prereqs', 'N/A'))
-                        coreqs = self.format_prerequisites(course_info.get('Coreqs', 'N/A'))
+                        prereqs = self.decode_requirement(course_info.get('Prereqs', 'N/A'))
+                        coreqs = self.decode_requirement(course_info.get('Coreqs', 'N/A'))
                         self.course_list.insert("", "end", values=(
                             f"{department} {course_code}",
                             course_info['Class Full Name'],
