@@ -280,67 +280,115 @@ class CourseDetailsPopup(tk.Toplevel):
         scrollbar = ttk.Scrollbar(text_frame)
         scrollbar.pack(side='right', fill='y')
         
+        # Safely get course information with defaults
+        prefix = course_info.get('prefix', '').strip().upper()
+        number = course_info.get('number', '').strip()
+        name = course_info.get('name', '')
+        credits = course_info.get('credits', 0)
+        college = course_info.get('college', 'Unknown')
+        grade = course_info.get('grade', '')
+        is_transfer = course_info.get('is_transfer', False)
+        
+        # Determine text color tag based on college
+        is_usf = college == "The University of South Florida"
+        
         self.details_text = tk.Text(
             text_frame,
             wrap='word',
-            yscrollcommand=scrollbar.set
+            yscrollcommand=scrollbar.set,
+            background='#E6F3FF' if is_usf else 'white'
         )
         self.details_text.pack(fill='both', expand=True)
         scrollbar.config(command=self.details_text.yview)
         
+        # Configure text tags for colors
+        self.details_text.tag_configure('usf_text', foreground='#006747')
+        self.details_text.tag_configure('normal_text', foreground='black')
+        
         # Get course details from the catalog
         try:
-            catalog_info = courses["University of South Florida"][course_info['prefix']][course_info['number']]
+            # Try to find the course in the catalog
+            usf_courses = courses["University of South Florida"]
+            catalog_info = None
+            text_tag = 'usf_text' if is_usf else 'normal_text'
+            
+            # First try exact match
+            if prefix in usf_courses and number in usf_courses[prefix]:
+                catalog_info = usf_courses[prefix][number]
+            else:
+                # Try case-insensitive match
+                for dept in usf_courses:
+                    if dept.upper() == prefix:
+                        for num in usf_courses[dept]:
+                            if num == number:  # Try exact number match first
+                                catalog_info = usf_courses[dept][num]
+                                prefix = dept  # Use the correct case from catalog
+                                number = num
+                                break
+                            elif num.upper() == number.upper():  # Then try case-insensitive
+                                catalog_info = usf_courses[dept][num]
+                                prefix = dept  # Use the correct case from catalog
+                                number = num
+                                break
+                        if catalog_info:
+                            break
             
             # Format and display course details
-            details = f"Course: {course_info['prefix']} {course_info['number']}\n\n"
-            details += f"Name: {course_info['name']}\n\n"
-            details += f"Credits: {course_info['credits']}\n\n"
+            self.details_text.insert('end', f"Course: {prefix} {number}\n\n", text_tag)
+            self.details_text.insert('end', f"Name: {name}\n\n", text_tag)
+            self.details_text.insert('end', f"Credits: {credits}\n\n", text_tag)
             
-            if course_info.get('is_transfer', False):
-                details += f"Transfer Course from: {course_info.get('college', 'Unknown')}\n\n"
+            if grade:
+                self.details_text.insert('end', f"Grade: {grade}\n\n", text_tag)
             
-            details += f"Description:\n{catalog_info.get('Description', 'No description available.')}\n\n"
+            if is_transfer:
+                self.details_text.insert('end', f"Transfer Course from: {college}\n\n", text_tag)
             
-            prereqs = catalog_info.get('Prereqs', 'N/A')
-            if isinstance(prereqs, dict):
-                if 'AND' in prereqs:
-                    prereq_text = ' AND '.join(f"{p['Department']} {p['Course Code']} (Grade: {p['Grade']})" 
-                                             for p in prereqs['AND'])
-                elif 'OR' in prereqs:
-                    prereq_text = ' OR '.join(f"{p['Department']} {p['Course Code']} (Grade: {p['Grade']})" 
-                                            for p in prereqs['OR'])
+            if catalog_info:
+                self.details_text.insert('end', "Description:\n", 'normal_text')
+                self.details_text.insert('end', f"{catalog_info.get('Description', 'No description available.')}\n\n", text_tag)
+                
+                prereqs = catalog_info.get('Prereqs', 'N/A')
+                if isinstance(prereqs, dict):
+                    if 'AND' in prereqs:
+                        prereq_text = self.format_requirement_list(prereqs['AND'], 'AND')
+                    elif 'OR' in prereqs:
+                        prereq_text = self.format_requirement_list(prereqs['OR'], 'OR')
+                    else:
+                        prereq_text = str(prereqs)
                 else:
                     prereq_text = str(prereqs)
-            else:
-                prereq_text = str(prereqs)
-            
-            details += f"Prerequisites: {prereq_text}\n\n"
-            
-            coreqs = catalog_info.get('Coreqs', 'N/A')
-            if isinstance(coreqs, dict):
-                if 'AND' in coreqs:
-                    coreq_text = ' AND '.join(f"{p['Department']} {p['Course Code']} (Grade: {p['Grade']})" 
-                                            for p in coreqs['AND'])
-                elif 'OR' in coreqs:
-                    coreq_text = ' OR '.join(f"{p['Department']} {p['Course Code']} (Grade: {p['Grade']})" 
-                                           for p in coreqs['OR'])
+                
+                self.details_text.insert('end', "Prerequisites: ", 'normal_text')
+                self.details_text.insert('end', f"{prereq_text}\n\n", text_tag)
+                
+                coreqs = catalog_info.get('Coreqs', 'N/A')
+                if isinstance(coreqs, dict):
+                    if 'AND' in coreqs:
+                        coreq_text = self.format_requirement_list(coreqs['AND'], 'AND')
+                    elif 'OR' in coreqs:
+                        coreq_text = self.format_requirement_list(coreqs['OR'], 'OR')
+                    else:
+                        coreq_text = str(coreqs)
                 else:
                     coreq_text = str(coreqs)
+                
+                self.details_text.insert('end', "Corequisites: ", 'normal_text')
+                self.details_text.insert('end', coreq_text, text_tag)
             else:
-                coreq_text = str(coreqs)
+                self.details_text.insert('end', "Additional details not available in the course catalog.\n", 'normal_text')
+                self.details_text.insert('end', "(This could be due to course code changes or catalog updates)\n\n", 'normal_text')
             
-            details += f"Corequisites: {coreq_text}"
-            
-        except KeyError:
-            details = f"Course: {course_info['prefix']} {course_info['number']}\n\n"
-            details += f"Name: {course_info['name']}\n\n"
-            details += f"Credits: {course_info['credits']}\n\n"
-            if course_info.get('is_transfer', False):
-                details += f"Transfer Course from: {course_info.get('college', 'Unknown')}\n\n"
-            details += "Additional details not available in the course catalog."
+        except Exception as e:
+            text_tag = 'usf_text' if is_usf else 'normal_text'
+            self.details_text.insert('end', f"Course: {prefix} {number}\n\n", text_tag)
+            self.details_text.insert('end', f"Name: {name}\n\n", text_tag)
+            self.details_text.insert('end', f"Credits: {credits}\n\n", text_tag)
+            if is_transfer:
+                self.details_text.insert('end', f"Transfer Course from: {college}\n\n", text_tag)
+            self.details_text.insert('end', "Additional details not available in the course catalog.\n", 'normal_text')
+            self.details_text.insert('end', f"Error: {str(e)}\n\n", 'normal_text')
         
-        self.details_text.insert('1.0', details)
         self.details_text.config(state='disabled')
         
         # Close button
@@ -378,6 +426,31 @@ class CourseDetailsPopup(tk.Toplevel):
         # Destroy the window
         self.destroy()
 
+    def format_requirement_list(self, req_list, operator='AND'):
+        """Helper function to format a list of requirements"""
+        if not req_list:
+            return ''
+        
+        formatted = []
+        for req in req_list:
+            if isinstance(req, dict):
+                if 'OR' in req:
+                    # Handle nested OR condition
+                    nested = self.format_requirement_list(req['OR'], 'OR')
+                    if nested:
+                        formatted.append(f"({nested})")
+                elif 'Department' in req:
+                    # Handle individual course requirement
+                    dept = req.get('Department', '')
+                    code = req.get('Course Code', '')
+                    grade = req.get('Grade', '')
+                    if dept and code:
+                        formatted.append(f"{dept} {code} (Grade: {grade})")
+            elif isinstance(req, str):
+                formatted.append(req)
+        
+        return f" {operator} ".join(formatted)
+
 class FlowchartPage(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -397,14 +470,33 @@ class FlowchartPage(ttk.Frame):
         self.create_widgets()
         
     def create_widgets(self):
-        # Header
+        # Configure styles
         style = ttk.Style()
-        style.configure("Header.TLabel", background='#dcdad5',foreground='#006747')
+        style.configure('Transcript.Treeview', 
+                       background='#dcdad5', 
+                       fieldbackground='#dcdad5')
+        style.configure('Transcript.Treeview.Heading', 
+                       background='#dcdad5', 
+                       foreground='#303434')
+        style.configure('TranscriptFrame.TFrame', 
+                       background='#dcdad5')
+        style.configure('TranscriptLabel.TLabel',
+                       background='#dcdad5')
+        style.configure('Transcript.TLabelframe', 
+                       background='#dcdad5')
+        style.configure('Transcript.TLabelframe.Label', 
+                       background='#dcdad5')
+
+        # Set main frame background
+        self.configure(style='TranscriptFrame.TFrame')
+        
+        # Header
         header = ttk.Label(
             self,
             text="Academic Flowchart",
             font=('Helvetica', 20, 'bold'),
-            style="Header.TLabel"
+            foreground='#006747',
+            style='TranscriptLabel.TLabel'
         )
         header.pack(pady=10)
         
@@ -488,7 +580,7 @@ class FlowchartPage(ttk.Frame):
         self.box_height = 80  # Height for course boxes
         self.header_height = 40  # New smaller height for semester headers
         
-        # Bind mouse wheel for scrolling
+        # Bind mouse wheel for horizontal scrolling
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         
         # Bind drag and drop events
@@ -498,10 +590,11 @@ class FlowchartPage(ttk.Frame):
         
         # Add double-click binding for course details
         self.canvas.tag_bind('course_box', '<Double-Button-1>', self.show_course_details)
-        
+
     def _on_mousewheel(self, event):
-        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        
+        # Handle mouse wheel scrolling for horizontal scroll
+        self.canvas.xview_scroll(int(-1*(event.delta/120)), "units")
+
     def add_semester(self):
         semester_type = self.semester_type.get()
         year = self.year_entry.get()
@@ -762,13 +855,19 @@ class FlowchartPage(ttk.Frame):
             # Handle the drop
             if dropped_in_valid_column and target_semester and original_semester and course_index is not None:
                 if original_semester != target_semester:
-                    # Check if it's a transfer course
-                    if (original_semester in self.courses and 
-                        0 <= course_index < len(self.courses[original_semester]) and
-                        self.courses[original_semester][course_index].get('is_transfer', False)):
-                        # Show warning
-                        if messagebox.askyesno("Warning", 
-                            "This is a transfer course. Moving it to a different semester might affect your academic progress. Are you sure you want to move it?"):
+                    # Get the course info
+                    course = self.courses[original_semester][course_index]
+                    college = course.get('college', '')
+                    is_usf = college == "The University of South Florida"
+                    
+                    # Show warning based on course type
+                    warning_message = None
+                    if is_usf:
+                        warning_message = "This is a USF course. Moving it to a different semester might affect your academic progress. Are you sure you want to move it?"
+                    
+                    # Only move if user confirms or if no warning needed
+                    if warning_message:
+                        if messagebox.askyesno("Warning", warning_message):
                             move_course = True
                     else:
                         move_course = True
@@ -939,13 +1038,25 @@ class FlowchartPage(ttk.Frame):
             for j, course in enumerate(self.courses[semester]):
                 y = self.box_padding + self.header_height + (j * (self.box_height + self.box_padding))
                 
+                # Get course info
+                college = course.get('college', '')
+                is_transfer = course.get('is_transfer', True)  # Default to True for safety
+                is_manual = course.get('is_manual', False)
+                is_usf = college == "The University of South Florida"
+                
                 # Determine box color based on course type
-                if course.get('is_transfer', False):
-                    box_fill = 'lightyellow'  # Transfer courses
-                elif course.get('is_manual', False):
-                    box_fill = '#E6F3FF'  # Manually added courses (light blue)
+                if is_usf:
+                    box_fill = '#80B0A6'  # USF mint green for background
+                    text_color = 'black'  # Black text for better contrast
+                elif is_transfer:
+                    box_fill = 'lightyellow'  # Light yellow for transfer courses
+                    text_color = 'black'
+                elif is_manual:
+                    box_fill = '#E6F3FF'  # Light blue for manually added courses
+                    text_color = 'black'
                 else:
-                    box_fill = 'white'  # Regular transcript courses
+                    box_fill = 'white'  # White for regular courses
+                    text_color = 'black'
                 
                 # Create course box group tag for all elements of this course
                 course_group_tag = f'{semester}_{j}'
@@ -956,6 +1067,7 @@ class FlowchartPage(ttk.Frame):
                     x + self.column_width, y + self.box_height,
                     fill=box_fill,
                     outline='black',
+                    width=1,
                     tags=('course_box', course_group_tag)
                 )
                 
@@ -967,13 +1079,11 @@ class FlowchartPage(ttk.Frame):
                 )
                 
                 # Add transfer label if applicable
-                if course.get('is_transfer', False):
-                    college = course.get('college', 'Unknown')
+                if is_transfer:
                     # Abbreviate The University of South Florida to USF
-                    if college == "The University of South Florida":
-                        college = "USF"
-                    course_text += f"\nTransfer: {college}"
-                elif course.get('is_manual', False):
+                    display_college = "USF" if is_usf else college
+                    course_text += f"\nTransfer: {display_college}"
+                elif is_manual:
                     course_text += "\nManually Added"
                 
                 text_item = self.canvas.create_text(
@@ -982,6 +1092,7 @@ class FlowchartPage(ttk.Frame):
                     text=course_text,
                     font=('Helvetica', 9),
                     justify='center',
+                    fill=text_color,
                     tags=('course_box', course_group_tag)
                 )
                 
@@ -1076,12 +1187,13 @@ class FlowchartPage(ttk.Frame):
                 
             # Format course data to match expected structure
             course_data = {
-                "prefix": course['Department'],
-                "number": course['Course Number'],
-                "name": course['Course Name'],
-                "credits": course['Credit Hours'],
-                "is_transfer": True,  # Mark as transfer course
-                "college": course['College']  # Store original college
+                "prefix": course.get('Department', ''),
+                "number": course.get('Course Number', ''),
+                "name": course.get('Course Name', ''),
+                "credits": course.get('Credit Hours', 0),
+                "grade": course.get('Grade', ''),
+                "college": course.get('College', 'Unknown'),
+                "is_transfer": course.get('College', '') != "The University of South Florida"
             }
             
             # Add course to the semester
