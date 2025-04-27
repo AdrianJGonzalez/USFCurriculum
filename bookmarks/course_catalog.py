@@ -161,12 +161,6 @@ class CourseCatalogPage(ttk.Frame):
         search_entry = tk.Entry(search_frame, textvariable=self.search_var, bg='#dcdad5', fg='#303434', relief='flat', highlightthickness=1, highlightbackground='#303434', insertbackground='#303434', justify='center')
         search_entry.pack(fill='x', padx=5, pady=5)
         search_entry.bind('<KeyRelease>', self.search_courses)
-        clear_button = ttk.Button(search_frame, text="Clear Search", command=self.clear_search)
-        clear_button.pack(pady=5)
-
-        # Reset All button
-        reset_button = ttk.Button(left_panel, text="Reset All", command=self.reset_all)
-        reset_button.pack(fill='x', padx=5, pady=5)
         
         # Create right panel for course list
         right_panel = ttk.Frame(main_container, style='Catalog.TFrame')
@@ -216,21 +210,7 @@ class CourseCatalogPage(ttk.Frame):
             self.department_combo['values'] = departments
             self.department_var.set("All")
             self.update_courses()
-
-    def clear_search(self):
-        self.search_var.set("")
-        self.update_courses()    
-
-    def reset_all(self):
-            # Reset University to the first option
-            if courses:
-                self.university_var.set(list(courses.keys())[0])
-                self.update_departments()  # This will also reset the Department to "All"
-            # Clear the search field
-            self.search_var.set("")
-            # Refresh the course list
-            self.update_courses()
-
+    
     def decode_requirement(self, req, parent_op=None, top_level=False):
         """
         Recursively deciphers a nested prerequisite/corequisite structure.
@@ -282,7 +262,7 @@ class CourseCatalogPage(ttk.Frame):
             return " ".join(sub_strings)
         else:
             return str(req)
-            
+    
     def update_courses(self, event=None):
         university = self.university_var.get()
         department = self.department_var.get()
@@ -339,7 +319,7 @@ class CourseCatalogPage(ttk.Frame):
 
         # Toggle the sort direction for the next click
         self.course_list.heading(col, command=lambda: self.sort_column(col, not reverse))
-
+    
     def search_courses(self, event=None):
         search_term = self.search_var.get().lower()
         

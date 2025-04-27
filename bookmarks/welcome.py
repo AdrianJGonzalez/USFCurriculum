@@ -44,7 +44,7 @@ class WelcomePage(ttk.Frame):
             container,
             text="Use the tabs above to navigate through different sections:\n\n\n" +
                  "• Course Catalog - Browse available courses\n\n" +
-                 "• Flowchart - View your program flowchart\n\n" +
+                 "• Semester Plan - Plan your courses semester by semester\n\n" +
                  "• Degree Selector - Choose your degree program\n\n" +
                  "• Upload Transcript - Upload and manage your transcripts\n\n" +
                  "• Advising - Select your department and information!\n\n"+
@@ -62,6 +62,7 @@ class WelcomePage(ttk.Frame):
             foreground="#006747" 
         )
         footer.pack(pady=10)
+
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Academic Program Manager")

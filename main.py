@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 from bookmarks.welcome import WelcomePage
+from bookmarks.semester_plan import SemesterPlanPage
 from bookmarks.course_catalog import CourseCatalogPage
-from bookmarks.flowchart import FlowchartPage
-from bookmarks.track_selector import TrackSelector
+from bookmarks.academic_plan import AcademicPlanPage
 from bookmarks.upload_transcript import TranscriptPage
 from bookmarks.advising import AdvisingPage
 from bookmarks.faq import FAQPage
@@ -43,26 +43,26 @@ class MainApplication(tk.Tk):
         # Create frames for each tab
         self.welcome_frame = WelcomePage(self.notebook)
         self.course_catalog_frame = CourseCatalogPage(self.notebook)
-        self.flowchart_frame = FlowchartPage(self.notebook)
-        self.track_selector_frame = TrackSelector(self.notebook)
+        self.semester_plan_frame = SemesterPlanPage(self.notebook)
+        self.academic_plan_frame = AcademicPlanPage(self.notebook)
         self.transcript_frame = TranscriptPage(self.notebook)
         self.advising_frame = AdvisingPage(self.notebook)
         self.faq_frame = FAQPage(self.notebook)
         
-        # Connect transcript page to flowchart
-        self.transcript_frame.set_flowchart(self.flowchart_frame)
+        # Connect transcript page to semester plan
+        self.transcript_frame.set_flowchart(self.semester_plan_frame)
         
         # Course Editor
         course_editor = CourseEditorPage(self.notebook)
         
         # Add frames to notebook in desired order
         self.notebook.add(self.welcome_frame, text="Welcome")
-        self.notebook.add(self.course_catalog_frame, text="Course Catalog")
-        self.notebook.add(self.flowchart_frame, text="Flowchart")
-        self.notebook.add(self.track_selector_frame, text="Track Selector")
         self.notebook.add(self.transcript_frame, text="Upload Transcript")
+        self.notebook.add(self.semester_plan_frame, text="Semester Plan")
+        self.notebook.add(self.academic_plan_frame, text="Academic Plan")
         self.notebook.add(self.advising_frame, text="Advising")
         self.notebook.add(self.faq_frame, text="FAQ")
+        self.notebook.add(self.course_catalog_frame, text="Course Catalog")
         self.notebook.add(course_editor, text="Course Editor")
 
 if __name__ == "__main__":

@@ -454,7 +454,7 @@ courses = {
                 "Credit Hours": 3
             },
             "4512C": {
-                "Class Full Name": "Introduction to Communication Systems",
+                "Class Full Name": "Intro to Communication Systems",
                 "Description": "Provides and introduction to the fundamental principles and techniques of analog and digital communications systems. Theory is put into practice by investigating a variety of applications. Lectures and projects develop understanding of modern communication systems design and analysis",
                 "Prereqs": {
                     "AND": [
@@ -930,7 +930,7 @@ courses = {
                 "Credit Hours": 3
             },
             "3374": {
-                "Class Full Name": "Introduction to Electrical Systems",
+                "Class Full Name": "Introduction to Electrical Systems II",
                 "Description": "A second course in linear passive circuits (following EGN 3373). An extension of the physical principles and models, AC/DC steady-state, transient analysis and power analysis techniques.",
                 "Prereqs": {
                     "AND": [
@@ -956,11 +956,46 @@ courses = {
                     ]
                 },
                 "Credit Hours": 3
+            },
+            "3420": {
+                "Class Full Name": "Engineering Analysis",
+                "Description": "Introduction to fundamentals of functions, matrices, matrix calculations, simultaneous equations, vector space, vector analysis, vector calculus, vector algebra, Laplacian operator, linear transformations, eigenvalues and eigenvectors.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2282",
+                            "Grade": "N/A"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "3373": {
+                "Class Full Name": "Introduction to Electrical Systems I",
+                "Description": "A first course in electrical systems: AC/DC circuit analysis, electronics (diodes, transistors, operational amplifiers), digital circuits (logic gates, K-maps), control systems concepts (final value theorem), electrical safety, and AC power.",
+                "Prereqs": "N/A",
+                "Coreqs": {
+                    "OR": [
+                        {
+                            "Department": "MAP",
+                            "Course Code": "2302",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3433",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Credit Hours": 3
             }
         },
         "EEE": {
             "3394": {
-                "Class Full Name": "Electrical Engineering Science I - Electronic Materials",
+                "Class Full Name": "EE Science 1: Electronic Mtrls",
                 "Description": "This course provides electrical and computer engineering students with a strong background in material science and quantum physics as they relate to electrical/electronic material and device properties and applications.",
                 "Prereqs": {
                     "AND": [
@@ -1236,6 +1271,532 @@ courses = {
             "4274": {
                 "Class Full Name": "MEMS I: Chemical/Biomedical Sensors and Microfabrication",
                 "Description": "The course gives an introduction to MEMS, microfabrication techniques and processes as well as basic design principles of biological and chemical Sensors. The course concentrates on basics of MEMS, different processes involved and principles of sensing.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "3302": {
+                "Class Full Name": "Electronics I",
+                "Description": "A course in the physical principles of electronic devices with emphasis on semi-conductor electronics. Includes the analysis and design of amplifiers and switching circuits.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3373",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4351C": {
+                "Class Full Name": "Semiconductor Devices",
+                "Description": "An introduction to the fundamentals of semiconductor materials and semiconductor device operation.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEE",
+                            "Course Code": "3394",
+                            "Grade": "N/A"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "ENC": {
+            "1101": {
+                "Class Full Name": "COMPOSITION I",
+                "Description": "This course introduces students to rhetorical concepts and audience-centered approaches to writing including composing processes, language conventions and style, and critical analysis and engagement with written texts and other forms of communication.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "1102": {
+                "Class Full Name": "COMPOSITION II",
+                "Description": "Instruction and practice in the skills of writing and reading. This course affords students the ability to communicate effectively, including the ability to write clearly and engage in public speaking.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "ENC",
+                            "Course Code": "1101",
+                            "Grade": "C-"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "3246": {
+                "Class Full Name": "Communication for Engineers",
+                "Description": "Focuses on writing concerns of engineers. Deals with the content, organization, format, and style of specific types of engineering documents. Provides opportunity to improve oral presentations.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "ENC",
+                            "Course Code": "1102",
+                            "Grade": "C-"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "MAC": {
+            "2282": {
+                "Class Full Name": "Engineering Calculus II",
+                "Description": "Definite integral, trigonometric functions, log, exponential, series, applications.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2281",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2311",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "2281": {
+                "Class Full Name": "Engineering Calculus I",
+                "Description": "Differentiation, limits, differentials, extremes, indefinite integral. No credit for mathematics majors.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "SAT",
+                            "Course Code": "MATH",
+                            "Grade": "670"
+                        },
+                        {
+                            "Department": "ACT",
+                            "Course Code": "MATH",
+                            "Grade": "29"
+                        },
+                        {
+                            "Department": "College-Level Math",
+                            "Course Code": "CPT",
+                            "Grade": "90"
+                        },
+                        {
+                            "Department": "PreCalc & Trig",
+                            "Course Code": "MPT",
+                            "Grade": "12"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "1147",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "2283": {
+                "Class Full Name": "Engineering Calculus III",
+                "Description": "Vector algebra, vector-valued functions, and analytic geometry in space. Polar, cylindrical, and spherical coordinate systems. Quadric surfaces and functions of several variables, partial derivatives, and optimization problems. Multiple integrals and applications to engineering and the sciences. Line Integrals if time permits.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2282",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2312",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "2311": {
+                "Class Full Name": "Calculus I",
+                "Description": "In this course, students will develop problem solving skills, critical thinking, computational proficiency, and contextual fluency through the study of limits, derivatives, and definite and indefinite integrals of functions of one variable, including algebraic, exponential, logarithmic, and trigonometric functions, and applications. Topics will include limits, continuity, differentiation and rates of change, optimization, curve sketching, and introduction to integration and area.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "1147",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "SAT",
+                            "Course Code": "MATH",
+                            "Grade": "671"
+                        },
+                        {
+                            "Department": "ACT",
+                            "Course Code": "MATH",
+                            "Grade": "29"
+                        },
+                        {
+                            "Department": "College-Level Math",
+                            "Course Code": "CPT",
+                            "Grade": "90"
+                        },
+                        {
+                            "Department": "PreCalc & Trig",
+                            "Course Code": "MPT",
+                            "Grade": "12"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "2312": {
+                "Class Full Name": "Calculus II",
+                "Description": "Antiderivatives, the definite integral, applications, series, log, exponential and trig functions. This course affords students a mastery of foundational mathematical and computation models and methods by applying such models and methods in problem solving.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2311",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2281",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "2313": {
+                "Class Full Name": "Calculus III",
+                "Description": "Vector algebra, vector-valued functions, and analytic geometry in space. Polar, cylindrical, and spherical coordinate systems. Quadric surfaces and functions of several variables, partial derivatives, and optimization problems. Multiple integrals and applications to engineering and the sciences. Line integrals if time permits. This course affords students a mastery of foundational mathematical and computation models and methods by applying such models and methods in problem solving.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2311",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2281",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            },
+            "1147": {
+                "Class Full Name": "Precalc Algebra/Trigonometry",
+                "Description": "This is an accelerated combination of precalculus algebra (MAC 1140) and precalculus trigonometry (MAC 1114); this course is best for students who have already seen some trigonometry. This course affords students a mastery of foundational mathematical and computation models and methods by applying such models and methods in problem solving.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "SAT",
+                            "Course Code": "MATH",
+                            "Grade": "570"
+                        },
+                        {
+                            "Department": "ACT",
+                            "Course Code": "MATH",
+                            "Grade": "24"
+                        },
+                        {
+                            "Department": "College-Level Math",
+                            "Course Code": "CPT",
+                            "Grade": "60"
+                        },
+                        {
+                            "Department": "College Algebra",
+                            "Course Code": "MPT",
+                            "Grade": "12"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "1105",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 4
+            }
+        },
+        "PHY": {
+            "2048": {
+                "Class Full Name": "General Physics I",
+                "Description": "This calculus-based course serves as the first in a two-part series, covering topics like kinematics, dynamics, energy, momentum, rotational motion, fluid dynamics, oscillatory motion, and waves. Designed for science and engineering majors, the course integrates critical thinking, analytical skills, and real-world applications.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2281",
+                            "Grade": "C-"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2311",
+                            "Grade": "C-"
+                        }
+                    ]
+                },
+                "Coreqs": {
+                    "AND": [
+                        {
+                            "Department": "PHY",
+                            "Course Code": "2048L",
+                            "Grade": "C-"
+                        }
+                    ]
+                },
+                "Credit Hours": 3
+            },
+            "2048L": {
+                "Class Full Name": "General Physics I Laboratory",
+                "Description": "First semester of a two-semester sequence of general physics (mechanics, wave motion, sound, thermodynamics, geometrical and physical optics, electricity, and magnetism) and laboratory for physics majors and engineering students.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2281",
+                            "Grade": "C-"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2311",
+                            "Grade": "C-"
+                        }
+                    ]
+                },
+                "Coreqs": {
+                    "AND": [
+                        {
+                            "Department": "PHY",
+                            "Course Code": "2048",
+                            "Grade": "C-"
+                        }
+                    ]
+                },
+                "Credit Hours": 1
+            }
+        },
+        "CHS": {
+            "2440": {
+                "Class Full Name": "Genrl Chemistry for Engineers",
+                "Description": "Introduction to important concepts and principles of chemistry with emphasis on areas considered most relevant in an engineering context.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2281",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2311",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "1105",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "1147",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "MAC",
+                            "Course Code": "2241",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "2440L": {
+                "Class Full Name": "Gen Chem for Engineers Lab",
+                "Description": "Laboratory portion of General Chemistry for Engineers. Introduction to laboratory techniques, study of properties of elements, synthesis and analysis of natural and commercial materials.",
+                "Prereqs": "N/A",
+                "Coreqs": {
+                    "AND": [
+                        {
+                            "Department": "CHS",
+                            "Course Code": "2440",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Credit Hours": 1
+            }
+        },
+        "MAP": {
+            "2302": {
+                "Class Full Name": "Differential Equations",
+                "Description": "First-order ordinary differential equations, theory of linear ordinary differential equations, solution of linear ordinary differential equations with constant coefficients, the Laplace transform and its application to solving linear ordinary differential equations.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "OR": [
+                                {
+                                    "Department": "MAC",
+                                    "Course Code": "2282",
+                                    "Grade": "B"
+                                },
+                                {
+                                    "Department": "MAC",
+                                    "Course Code": "2312",
+                                    "Grade": "B"
+                                }
+                            ]
+                        },
+                        {
+                            "OR": [
+                                {
+                                    "Department": "MAC",
+                                    "Course Code": "2283",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "MAC",
+                                    "Course Code": "2313",
+                                    "Grade": "C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "EGS": {
+            "2070": {
+                "Class Full Name": "Prof Form Engineers 1",
+                "Description": "Designed with your professional and personal goals in mind, this course will introduce you to engineering and ethical best practices; helping you broaden your educational experience and giving you insight to enhance your future career opportunities.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 1
+            },
+            "3071": {
+                "Class Full Name": "Prof Form Engineers 2",
+                "Description": "Introduction to professional careers in technology development, research and academia. Includes Engineering lab tours, faculty guest lectures, and the incorporation of local/global community perspectives into the creation of innovative solutions.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGS",
+                            "Course Code": "2070",
+                            "Grade": "N/A"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 1
+            },
+            "3072": {
+                "Class Full Name": "Prof Form Engineers 3",
+                "Description": "Introduction to Engineering Design Concepts, Innovation, and Entrepreneurship. Learn to create designs, products, and solutions using ethical engineering and business principles that meet societal needs.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGS",
+                            "Course Code": "3071",
+                            "Grade": "N/A"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 1
+            }
+        },
+        "EML": {
+            "3022": {
+                "Class Full Name": "Computer Aided Design & Engr",
+                "Description": "This course is intended for developing graphics design concepts in undergraduate students. Learning engineering drawing fundamentals, design views, design and analysis of mechanical engineering power transmission components using computer aided software.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "ARH": {
+            "2000": {
+                "Class Full Name": "Art and Culture",
+                "Description": "In this course, students will develop an appreciation of and the ability to think critically about culture and be provided with the tools to understand, analyze, and discuss works of visual art and material culture.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "HUM": {
+            "1020": {
+                "Class Full Name": "Introduction to Humanities",
+                "Description": "In this course, students will learn about the creative ideas and accomplishments of various cultures in various fields of humanities that may include art, architecture, drama, history, music, literature, philosophy, and religion. The course will include cultural expressions from the western canon and may also include expressions from around the globe.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "LIT": {
+            "2000": {
+                "Class Full Name": "Introduction to Literature",
+                "Description": "In this course, students will be assigned readings representative of a broad range of literary genres and cultures. These readings will cover a variety of literary movements and historical eras. The readings will include selections from the western canon. Written analysis of literary works may be required. Students will be provided with opportunities to practice critical interpretation.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "MUL": {
+            "2010": {
+                "Class Full Name": "Music and Culture",
+                "Description": "In this course, students will survey the history of classical music from antiquity to the modern period, focusing on western music. The curriculum may also integrate a variety of popular and global styles where appropriate.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "PHI": {
+            "2010": {
+                "Class Full Name": "Introduction to Philosophy",
+                "Description": "In this course, students will be introduced to the nature of philosophy, philosophical thinking, major intellectual movements in the history of philosophy, including topics from the western philosophical tradition, and various problems in philosophy. Students will strengthen their intellectual skills, become more effective learners, and develop broad foundational knowledge.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "THE": {
+            "2000": {
+                "Class Full Name": "Theater and Culture",
+                "Description": "In this course, students will explore dramatic structure, techniques, and various organizational elements. The course provides an introduction to theatre as a collaborative art form through the critical analysis of its historical context, production, theory, and connections to theatrical literature, including the western canon.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "PSY": {
+            "2012": {
+                "Class Full Name": "GENERAL PSYCHOLOGY",
+                "Description": "In this course, students will gain an introduction to the scientific study of human behavior and mental processes. Topics may be drawn from historical and current perspectives in psychology.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "BSC": {
+            "1005": {
+                "Class Full Name": "BIOLOGICAL FOUNDATIONS",
+                "Description": "This course applies the scientific method to critically examine and explain the natural world including but not limited to cells, organisms, genetics, evolution, ecology, and behavior.",
                 "Prereqs": "N/A",
                 "Coreqs": "N/A",
                 "Credit Hours": 3
