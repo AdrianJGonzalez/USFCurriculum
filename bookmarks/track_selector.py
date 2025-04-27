@@ -35,7 +35,8 @@ class TrackSelector(ttk.Frame):
             "3 - Energy, Power and Sustainability",
             "4 - Mechatronics, Robotics and Embedded Systems",
             "5 - Wireless Circuits and Systems",
-            "6 - Micro and Nano-Scale Systems"
+            "6 - Micro and Nano-Scale Systems",
+            "7 - Systems and Security"
         ]
         
         # Create checkboxes for each track
@@ -160,6 +161,20 @@ class TrackSelector(ttk.Frame):
                     ("EEE", "4274", "MEMS I: Chem/Biomed Sensors"),
                     ("EEE", "4359", "Analog CMOS/VLSI Design"),
                     ("EEL", "4936", "Integrated Circuit Technology")
+                ]
+            },
+            "7": {  # Systems and Security
+                "Spring": [
+                    ("EEE", "4748", "Cryptography and Data Security"),
+                    ("EEE", "4774", "Data Analytics"),
+                    ("EEE", "4746", "Wireless Mobile Computing & Security"),
+                    ("EEE", "4423", "Quantum Computing and Communications")
+                ],
+                "Fall": [
+                    ("EEL", "4782", "Data Network Systems & Security"),
+                    ("EEL", "4872", "AI and Security in Cyber Physical Systems"),
+                    ("EEL", "4743L", "Microprocessor Lab"),
+                    ("EEL", "4935", "Wireless Sensor Networks")
                 ]
             }
         }
