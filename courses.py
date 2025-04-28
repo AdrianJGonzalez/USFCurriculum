@@ -470,7 +470,7 @@ courses = {
             },
             "4540": {
                 "Class Full Name": "Radar Systems",
-                "Description": "The course provides a comprehensive introduction to radar systems and applications. The course examines radar concepts at both the systems and the syb-system level. Electromagnetic propagation, scattering, and antenna concepts are discussed. Wireless system design, signal processing, and radar imaging topics are analyzed.",
+                "Description": "The course provides a comprehensive introduction to radar systems and applications. The course examines radar concepts at both the system and the sub-system level. Electromagnetic propagation, scattering, and antenna concepts are discussed. Wireless system design, signal processing, and radar imaging topics are analyzed.",
                 "Prereqs": {
                     "AND": [
                         {
@@ -865,6 +865,113 @@ courses = {
                 "Prereqs": "N/A",
                 "Coreqs": "N/A",
                 "Credit Hours": 1
+            },
+            "4513L": {
+                "Class Full Name": "Wireless Communication Systems Laboratory",
+                "Description": "The course provides an extensive hands-on introduction to digital and wireless communication systems; involving testing, modeling, simulation, and measurements of the performance of digital communication systems at both sub-system and system levels. Wireless channel and its effect on the system will be reviewed. Ways to counteract the channel and radio impairments will be practically shown.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4512C",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4423C",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4252": {
+                "Class Full Name": "Power System II",
+                "Description": "Power system control and stability will be covered in this course. The two main controls in power system are voltage control and frequency control. The mechanism of the two types of control & power system stability will be examined.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "Department": "EGN",
+                            "Course Code": "4102",
+                            "Grade": "N/A"
+                        },
+                        {
+                            "Department": "EGN",
+                            "Course Code": "3375",
+                            "Grade": "N/A"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4906": {
+                "Class Full Name": "EE Design 1",
+                "Description": "An introduction of engineering design with applications specific to practical engineering problems. Included are discussion of real-world issues as economics, safety, ethics and the environment.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "OR": [
+                                {
+                                    "Department": "EEE",
+                                    "Course Code": "3302",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "EEL",
+                                    "Course Code": "4512C",
+                                    "Grade": "C"
+                                }
+                            ]
+                        },
+                        {
+                            "OR": [
+                                {
+                                    "Department": "EEE",
+                                    "Course Code": "4351C",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "EGN",
+                                    "Course Code": "3375",
+                                    "Grade": "C"
+                                }
+                            ]
+                        },
+                        {
+                            "OR": [
+                                {
+                                    "Department": "EEL",
+                                    "Course Code": "4657",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "EEL",
+                                    "Course Code": "4423C",
+                                    "Grade": "C"
+                                }
+                            ]
+                        },
+                        {
+                            "Department": "EEL",
+                            "Course Code": "3115L",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "EEL",
+                            "Course Code": "4102",
+                            "Grade": "C"
+                        },
+                        {
+                            "Department": "EEL",
+                            "Course Code": "3472C",
+                            "Grade": "C"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
             }
         },
         "EGN": {
@@ -990,6 +1097,54 @@ courses = {
                         }
                     ]
                 },
+                "Credit Hours": 3
+            },
+            "3433": {
+                "Class Full Name": "Mod & Analysis of Eng Systems",
+                "Description": "Dynamic analysis of electrical, mechanical, hydraulic and thermal systems; Laplace transforms; numerical methods; use of computers in dynamic systems; analytical solution to first and second order ODEs. Restricted to majors.",
+                "Prereqs": {
+                    "AND": [
+                        {
+                            "OR": [
+                                {
+                                    "Department": "MAC",
+                                    "Course Code": "2282",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "MAC",
+                                    "Course Code": "2312",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "AP68",
+                                    "Course Code": "Calculus BC",
+                                    "Grade": "4"
+                                }
+                            ]
+                        },
+                        {
+                            "OR": [
+                                {
+                                    "Department": "PHY",
+                                    "Course Code": "2048",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "PHY",
+                                    "Course Code": "2060",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "AP80",
+                                    "Course Code": "Physics C: Mechanics",
+                                    "Grade": "4"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
                 "Credit Hours": 3
             }
         },
@@ -1299,6 +1454,40 @@ courses = {
                             "Department": "EEE",
                             "Course Code": "3394",
                             "Grade": "N/A"
+                        }
+                    ]
+                },
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "4567": {
+                "Class Full Name": "Electro-Optics",
+                "Description": "An introduction to the field of electro-optics, including visible and infra-red sources and detectors, radiometry, optical and electronic components, and fiber optics.",
+                "Prereqs": {
+                    "OR": [
+                        {
+                            "Department": "EEL",
+                            "Course Code": "3472C",
+                            "Grade": "C"
+                        },
+                        {
+                            "AND": [
+                                {
+                                    "Department": "PHY",
+                                    "Course Code": "2049",
+                                    "Grade": "C"
+                                },
+                                {
+                                    "Department": "PHY",
+                                    "Course Code": "2049L",
+                                    "Grade": "C"
+                                }
+                            ]
+                        },
+                        {
+                            "Department": "AP Physics C:",
+                            "Course Code": "Electricity and Magnetism",
+                            "Grade": "4"
                         }
                     ]
                 },
@@ -1797,6 +1986,49 @@ courses = {
             "1005": {
                 "Class Full Name": "BIOLOGICAL FOUNDATIONS",
                 "Description": "This course applies the scientific method to critically examine and explain the natural world including but not limited to cells, organisms, genetics, evolution, ecology, and behavior.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "AMH": {
+            "2010": {
+                "Class Full Name": "American History I",
+                "Description": "In this course, students will examine United States history from before European contact to 1877. Topics will include but are not limited to indigenous peoples, the European background, the colonial period, the American Revolution, the Articles of Confederation, the Constitution, issues within the New Republic, sectionalism, Manifest Destiny, slavery, the American Civil War, and reconstruction.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            },
+            "2020": {
+                "Class Full Name": "American History II",
+                "Description": "In this course, students will trace the history of the United States from the end of the reconstruction era to the contemporary era. Topics will include but are not limited to the rise of industrialization, the United States' emergence as an actor on the world stage, constitutional amendments and their impact, the progressive era, World War I, the Great Depression and New Deal, World War II, the Civil Rights Era, the Cold War, and the United States since 1989.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "ANT": {
+            "2000": {
+                "Class Full Name": "American History II",
+                "Description": "In this course, students will learn the foundations of anthropology as the study of human variation in its biological, social, and cultural dimensions. Students will learn about anthropological concepts, principles, and methodologies to understand and explore past and present human behavior. They will apply the anthropological approach to analyze issues pertaining to past and contemporary cultures, and develop intellectual skills and habits to understand behavioral, social, and cultural issues from multiple disciplinary perspectives.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "ECO": {
+            "2013": {
+                "Class Full Name": "Economic Principles (Macroeconomics)",
+                "Description": "In this course, students will learn the foundations of macroeconomics as the branch of economics concerned with how decision-making, in an environment of scarcity, maps onto the aggregate economy. Students will examine theories and evidence related the following core set of topics: national income determination, money, monetary and fiscal policy, macroeconomic conditions, international trade and the balance of payments, and economic growth and development.",
+                "Prereqs": "N/A",
+                "Coreqs": "N/A",
+                "Credit Hours": 3
+            }
+        },
+        "POS": {
+            "2041": {
+                "Class Full Name": "American National Government",
+                "Description": "In this course, students will investigate how the national government is structured and how the American constitutional republic operates. It covers the philosophical and historical foundations of American government, including but not limited to the declaration of independence, the United States constitution and all its amendments, and the federalist papers. The course examines the branches of government and the government's laws, policies, and programs. It also examines the ways in which citizens participate in their government and ways their government responds to citizens.",
                 "Prereqs": "N/A",
                 "Coreqs": "N/A",
                 "Credit Hours": 3
