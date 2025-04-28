@@ -22,7 +22,21 @@ class TranscriptPage(ttk.Frame):
     def create_widgets(self):
         # Configure styles
         style = ttk.Style()
-        
+        style.layout('Custom.Vertical.TScrollbar', [
+            ('Vertical.Scrollbar.trough', {
+                'children': [
+                    ('Vertical.Scrollbar.thumb', {'expand': '1', 'sticky': 'nswe'})
+                ],
+                'sticky': 'ns'
+            })
+        ])
+
+        style.configure('Custom.Vertical.TScrollbar',
+            troughcolor='#dcdad5',    # Background color of scrollbar track
+            background='#303434',     # Thumb (slider) color
+            width=22                  # <-- Make vertical scrollbar thicker (adjust here)
+        )
+
         # Configure Treeview styles
         style.configure('Transcript.Treeview', 
                        background='#dcdad5', 
@@ -108,10 +122,16 @@ class TranscriptPage(ttk.Frame):
             bg='#dcdad5',
             highlightthickness=0  # Remove canvas border
         )
-        self.scrollbar = ttk.Scrollbar(
+        self.h_scrollbar = ttk.Scrollbar(
             self.semester_frame, 
             orient="horizontal", 
             command=self.canvas.xview
+        )
+        self.v_scrollbar = ttk.Scrollbar(
+            self.semester_frame,
+            orient="vertical",
+            command=self.canvas.yview,
+            style='Custom.Vertical.TScrollbar'
         )
         self.scrollable_frame = ttk.Frame(
             self.canvas,
@@ -124,12 +144,17 @@ class TranscriptPage(ttk.Frame):
         )
         
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        self.canvas.configure(xscrollcommand=self.scrollbar.set)
+        self.canvas.configure(xscrollcommand=self.h_scrollbar.set,yscrollcommand=self.v_scrollbar.set)
         
         # Pack canvas and scrollbar
         self.canvas.pack(side="top", fill="both", expand=True)
-        self.scrollbar.pack(side="bottom", fill="x")
+        self.h_scrollbar.pack(side="bottom", fill="x")
+        self.v_scrollbar.pack(side="right", fill="x")
         
+        # Bind mousewheel to scroll vertically
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.canvas.bind_all("<Shift-MouseWheel>", self._on_shift_mousewheel)
+
         # Create totals frame
         totals_frame = ttk.Frame(
             self,
@@ -447,5 +472,8 @@ class TranscriptPage(ttk.Frame):
         self.completed_credits_label.config(text=f"Completed Credits: {completed_credits:.1f}")
 
     def _on_mousewheel(self, event):
-        # Handle mouse wheel scrolling for horizontal scroll
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def _on_shift_mousewheel(self, event):
         self.canvas.xview_scroll(int(-1*(event.delta/120)), "units")
+        
