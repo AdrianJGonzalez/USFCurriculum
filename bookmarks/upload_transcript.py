@@ -3,6 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 import re
 import json
 import PyPDF2
+import webbrowser  # Added for hyperlink functionality
 from typing import Optional
 
 class TranscriptPage(ttk.Frame):
@@ -69,7 +70,8 @@ class TranscriptPage(ttk.Frame):
             style='TranscriptLabel.TLabel'
         )
         header.pack(pady=10)
-        #PDF scaling notes
+        
+        # PDF scaling notes
         note1 = ttk.Label(
             self,
             text="* PDF Needs to Scale Down to 88%",
@@ -78,13 +80,50 @@ class TranscriptPage(ttk.Frame):
         )
         note1.pack(pady=(0, 0))
 
+        # Create a frame to hold the second note with the hyperlink
+        note2_frame = ttk.Frame(self, style='TranscriptFrame.TFrame')
+        note2_frame.pack(pady=(0, 10), fill='x')
+
+        # First part of the note
         note2 = ttk.Label(
-            self,
-            text="* To Save Transcript at 88% Scaled: Print this page -> More settings -> Scale -> 88 -> Save",
+            note2_frame,
+            text="* To Save Transcript at 88% Scaled, Please follow the steps below:",
             font=('Helvetica', 10),
-            style='TranscriptLabel.TLabel'
+            style='TranscriptLabel.TLabel',
+            wraplength=600  # Adjust wrap length for better text wrapping
         )
-        note2.pack(pady=(0, 10))       
+        note2.pack(pady=(0, 0))
+
+        # Second part with FloridaShines as a clickable link
+        note3 = ttk.Label(
+            note2_frame,
+            text="1. To FloridaShines",
+            font=('Helvetica', 10,),
+            foreground='blue',  # Make it look like a hyperlink
+            style='TranscriptLabel.TLabel',
+            cursor="hand2"  # Hand cursor on hover
+        )
+        note3.pack(pady=(0, 0))
+        note3.bind("<Button-1>", lambda e: webbrowser.open("https://www.floridashines.org/check-your-progress"))
+
+        # Rest of the note
+        note4 = ttk.Label(
+            note2_frame,
+            text="2. View Transcript -> Select University of South Florida -> Sign In ",
+            font=('Helvetica', 10),
+            style='TranscriptLabel.TLabel',
+            wraplength=600  # Adjust wrap length for better text wrapping
+        )
+        note4.pack(pady=(0, 0))
+        
+        note5 = ttk.Label(
+            note2_frame,
+            text="3. Print this page -> More Settings -> Scale -> 88 -> Save",
+            font=('Helvetica', 10),
+            style='TranscriptLabel.TLabel',
+            wraplength=600  # Adjust wrap length for better text wrapping
+        )
+        note5.pack(pady=(0, 0))
         # Upload frame
         upload_frame = ttk.LabelFrame(
             self, 
@@ -491,4 +530,3 @@ class TranscriptPage(ttk.Frame):
 
     def _on_shift_mousewheel(self, event):
         self.canvas.xview_scroll(int(-1*(event.delta/120)), "units")
-        
