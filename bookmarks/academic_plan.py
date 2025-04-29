@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 @dataclass
@@ -14,6 +14,7 @@ class TrackState:
     name: str
     selected_courses: List[Optional[Course]]
     is_selected: bool = False
+    checkbox_var: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
 
 class AcademicPlanPage(ttk.Frame):
     def __init__(self, parent):
@@ -23,6 +24,23 @@ class AcademicPlanPage(ttk.Frame):
         self.canvas.configure(xscrollcommand=self.h_scroll.set)
         self.canvas.pack(side='top', fill='both', expand=True)
         self.h_scroll.pack(side='bottom', fill='x')
+        
+        # Initialize course status dictionary
+        self.course_status = {}
+        
+        # Initialize track database
+        self.initialize_track_database()
+        
+        # Initialize track states
+        self.track_states: Dict[str, TrackState] = {}
+        for track_name in self.TRACK_DATABASE:
+            self.track_states[track_name] = TrackState(
+                name=track_name,
+                selected_courses=[None] * 3  # 3 course slots per track
+            )
+        
+        # Initialize selected_track_electives
+        self.selected_track_electives: List[Optional[Course]] = [None] * 8
         
         # Bind mouse wheel to horizontal scrolling
         self.canvas.bind('<MouseWheel>', self.on_mousewheel)
@@ -42,17 +60,6 @@ class AcademicPlanPage(ttk.Frame):
             'clear_button': '#FF0000',
             'title_bg': 'lightgray'
         }
-        
-        # Initialize track database
-        self.initialize_track_database()
-        
-        # Initialize track states
-        self.track_states: Dict[str, TrackState] = {}
-        for track_name in self.TRACK_DATABASE:
-            self.track_states[track_name] = TrackState(
-                name=track_name,
-                selected_courses=[None] * 3  # 3 course slots per track
-            )
         
         # Track UI elements
         self.track_ui_elements = {}
@@ -533,10 +540,7 @@ class AcademicPlanPage(ttk.Frame):
                         
         except Exception as e:
             print(f"Error opening course selector: {e}")
-            try:
-                selector.destroy()
-            except:
-                pass
+            return None
 
     def clear_course(self, track_state: TrackState, box_number: int):
         """Clear a selected course"""
@@ -581,7 +585,8 @@ class AcademicPlanPage(ttk.Frame):
         )
         btn.pack(pady=10)
 
-    def on_mousewheel(self, event):
+    def handle_mousewheel(self, event):
+        """Handle mousewheel scrolling for horizontal canvas movement"""
         # Handle different event types for different systems
         if event.num == 4:  # Linux scroll up
             self.canvas.xview_scroll(-1, "units")
@@ -589,8 +594,11 @@ class AcademicPlanPage(ttk.Frame):
             self.canvas.xview_scroll(1, "units")
         else:  # Windows and macOS
             # Convert vertical scroll to horizontal
-            # Adjust the multiplier (-1 or 1) based on your preferred scroll direction
             self.canvas.xview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    def on_mousewheel(self, event):
+        """Alias for handle_mousewheel for backward compatibility"""
+        return self.handle_mousewheel(event)
 #########################################################################################################################
     def draw_general_education_requirements(self):
         # Group label
@@ -606,7 +614,9 @@ class AcademicPlanPage(ttk.Frame):
 
         # ENC 1101 (interactive)
         enc1101_y = top_margin
-        enc1101_box = self.canvas.create_rectangle(left_margin, enc1101_y, left_margin + box_width, enc1101_y + box_height, outline='black', width=2, tags=('course_box', 'enc_1101_box'))
+        enc1101_box = self.canvas.create_rectangle(left_margin, enc1101_y, left_margin + box_width, enc1101_y + box_height, 
+                                                outline='black', width=2, fill='white',
+                                                tags=('course_box', 'enc_1101_box'))
         enc1101_text = self.canvas.create_text(
             left_margin + box_width/2,
             enc1101_y + box_height/2,
@@ -620,9 +630,20 @@ class AcademicPlanPage(ttk.Frame):
                             command=lambda: self.show_course_details_box('ENC', '1101'))
         self.canvas.create_window(left_margin + 2, enc1101_y + 2, window=info_btn1, anchor='nw')
 
+        # Add status button for ENC 1101
+        self.status_btn_enc1101 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_enc1101.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "ENC 1101", enc1101_box, self.status_btn_enc1101))
+        self.canvas.create_window(left_margin + box_width, enc1101_y + box_height, 
+                                window=self.status_btn_enc1101, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("ENC 1101", enc1101_box, self.status_btn_enc1101)
+
         # ENC 1102 (below ENC 1101, interactive)
         enc1102_y = enc1101_y + box_height + box_gap
-        enc1102_box = self.canvas.create_rectangle(left_margin, enc1102_y, left_margin + box_width, enc1102_y + box_height, outline='black', width=2, tags=('course_box', 'enc_1102_box'))
+        enc1102_box = self.canvas.create_rectangle(left_margin, enc1102_y, left_margin + box_width, enc1102_y + box_height, 
+                                                outline='black', width=2, fill='white',
+                                                tags=('course_box', 'enc_1102_box'))
         enc1102_text = self.canvas.create_text(
             left_margin + box_width/2,
             enc1102_y + box_height/2,
@@ -635,6 +656,15 @@ class AcademicPlanPage(ttk.Frame):
                             width=2, height=1, bg='#4FC3F7', fg='white',
                             command=lambda: self.show_course_details_box('ENC', '1102'))
         self.canvas.create_window(left_margin+2, enc1102_y+2, window=info_btn2, anchor='nw')
+
+        # Add status button for ENC 1102
+        self.status_btn_enc1102 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_enc1102.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "ENC 1102", enc1102_box, self.status_btn_enc1102))
+        self.canvas.create_window(left_margin + box_width, enc1102_y + box_height, 
+                                window=self.status_btn_enc1102, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("ENC 1102", enc1102_box, self.status_btn_enc1102)
 
         # GenEd Core Humanities (course selector)
         hum_y = enc1102_y + box_height + box_gap
@@ -669,6 +699,14 @@ class AcademicPlanPage(ttk.Frame):
                                      width=2, height=1, bg='#FF0000', fg='white',
                                      command=self.clear_humanities_selection)
         self.canvas.create_window(left_margin + box_width - 25, hum_y+2, window=self.hum_clear_btn, anchor='nw')
+
+        # Add status button for Humanities
+        self.status_btn_hum = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black', state='disabled')
+        self.status_btn_hum.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "GenEd Humanities", self.hum_box, self.status_btn_hum))
+        self.canvas.create_window(left_margin + box_width, hum_y + box_height, 
+                                window=self.status_btn_hum, anchor='se')
+
         # Update button visibility
         self.update_humanities_buttons()
         self.canvas.tag_bind(self.hum_box, '<Button-1>', lambda e: self.open_humanities_selector(left_margin, hum_y, box_width, box_height))
@@ -709,7 +747,15 @@ class AcademicPlanPage(ttk.Frame):
                                      width=2, height=1, bg='#FF0000', fg='white',
                                      command=self.clear_social_selection)
         self.canvas.create_window(left_margin + box_width - 25, soc_y + 2, window=self.soc_clear_btn, anchor='nw')
-        # Update button visibility
+
+        # Add status button for Social Studies
+        self.status_btn_soc = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black', state='disabled')
+        self.status_btn_soc.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "GenEd Social Studies", self.soc_box, self.status_btn_soc))
+        self.canvas.create_window(left_margin + box_width, soc_y + box_height, 
+                                window=self.status_btn_soc, anchor='se')
+
+        # Update button visibility and bind events
         self.update_social_buttons()
         self.canvas.tag_bind(self.soc_box, '<Button-1>', lambda e: self.open_social_selector(left_margin, soc_y, box_width, box_height))
         self.canvas.tag_bind(self.soc_text, '<Button-1>', lambda e: self.open_social_selector(left_margin, soc_y, box_width, box_height))
@@ -732,6 +778,15 @@ class AcademicPlanPage(ttk.Frame):
                             command=lambda: self.show_course_details_box('EGN', '3000'))
         self.canvas.create_window(left_margin + 2, egn3000_y + 2, window=info_btn3, anchor='nw')
 
+        # Add status button for EGN 3000
+        self.status_btn_egn3000 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egn3000.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3000", egn3000_box, self.status_btn_egn3000))
+        self.canvas.create_window(left_margin + box_width, egn3000_y + box_height, 
+                                window=self.status_btn_egn3000, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3000", egn3000_box, self.status_btn_egn3000)
+
         # EGN 3000L (below EGN 3000)
         egn3000l_y = egn3000_y + box_height + box_gap
         egn3000l_box = self.canvas.create_rectangle(left_margin, egn3000l_y, left_margin + box_width, egn3000l_y + box_height, outline='black', width=2)
@@ -747,6 +802,15 @@ class AcademicPlanPage(ttk.Frame):
                             width=2, height=1, bg='#4FC3F7', fg='white',
                             command=lambda: self.show_course_details_box('EGN', '3000L'))
         self.canvas.create_window(left_margin + 2, egn3000l_y + 2, window=info_btn4, anchor='nw')
+
+        # Add status button for EGN 3000L
+        self.status_btn_egn3000l = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egn3000l.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3000L", egn3000l_box, self.status_btn_egn3000l))
+        self.canvas.create_window(left_margin + box_width, egn3000l_y + box_height, 
+                                window=self.status_btn_egn3000l, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3000L", egn3000l_box, self.status_btn_egn3000l)
 
         # Set scroll region
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
@@ -881,6 +945,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=show_mac_info)
         self.canvas.create_window(col2_left + 2, col2_y + col2_gap + 2, window=info_btn_mac, anchor='nw')
 
+        # Add status button for MAC 2281/2311
+        self.status_btn_mac = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_mac.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "MAC 2281/2311", mac_box, self.status_btn_mac))
+        self.canvas.create_window(col2_left + box_width, col2_y + col2_gap + box_height, 
+                                window=self.status_btn_mac, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("MAC 2281/2311", mac_box, self.status_btn_mac)
+
         # Row 3: PHY 2048
         phy_box = self.canvas.create_rectangle(col2_left, col2_y + 2*col2_gap, col2_left + box_width, col2_y + 2*col2_gap + box_height, outline='black', width=2)
         phy_text = self.canvas.create_text(
@@ -895,6 +968,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('PHY', '2048'))
         self.canvas.create_window(col2_left + 2, col2_y + 2*col2_gap + 2, window=info_btn_phy, anchor='nw')
 
+        # Add status button for PHY 2048
+        self.status_btn_phy = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_phy.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "PHY 2048", phy_box, self.status_btn_phy))
+        self.canvas.create_window(col2_left + box_width, col2_y + 2*col2_gap + box_height, 
+                                window=self.status_btn_phy, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("PHY 2048", phy_box, self.status_btn_phy)
+
         # Row 4: PHY 2048L
         phyl_box = self.canvas.create_rectangle(col2_left, col2_y + 3*col2_gap, col2_left + box_width, col2_y + 3*col2_gap + box_height, outline='black', width=2)
         phyl_text = self.canvas.create_text(
@@ -908,6 +990,15 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('PHY', '2048L'))
         self.canvas.create_window(col2_left + 2, col2_y + 3*col2_gap + 2, window=info_btn_phyl, anchor='nw')
+
+        # Add status button for PHY 2048L
+        self.status_btn_phyl = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_phyl.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "PHY 2048L", phyl_box, self.status_btn_phyl))
+        self.canvas.create_window(col2_left + box_width, col2_y + 3*col2_gap + box_height, 
+                                window=self.status_btn_phyl, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("PHY 2048L", phyl_box, self.status_btn_phyl)
 
         # Row 5: EEL 3705
         eel_box = self.canvas.create_rectangle(col2_left, col2_y + 4*col2_gap, col2_left + box_width, col2_y + 4*col2_gap + box_height, outline='black', width=2)
@@ -936,6 +1027,24 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EEL', '3705L'))
         self.canvas.create_window(col2_left + 2, col2_y + 5*col2_gap + 2, window=info_btn_eell, anchor='nw')
+
+        # Add status button for EEL 3705
+        self.status_btn_eel = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_eel.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 3705", eel_box, self.status_btn_eel))
+        self.canvas.create_window(col2_left + box_width, col2_y + 4*col2_gap + box_height, 
+                                window=self.status_btn_eel, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 3705", eel_box, self.status_btn_eel)
+
+        # Add status button for EEL 3705L
+        self.status_btn_eell = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_eell.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 3705L", eell_box, self.status_btn_eell))
+        self.canvas.create_window(col2_left + box_width, col2_y + 5*col2_gap + box_height, 
+                                window=self.status_btn_eell, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 3705L", eell_box, self.status_btn_eell)
 
         # Shift the rest of the grid to the right
         left = left + box_width + h_gap
@@ -1009,6 +1118,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=show_mod_info)
         self.canvas.create_window(col3_left + 2, col3_y + 2, window=info_btn_mod, anchor='nw')
 
+        # Add status button for EGN 3433/MAP 2302
+        self.status_btn_mod = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_mod.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3433/MAP 2302", mod_box, self.status_btn_mod))
+        self.canvas.create_window(col3_left + box_width, col3_y + box_height, 
+                                window=self.status_btn_mod, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3433/MAP 2302", mod_box, self.status_btn_mod)
+
         # Row 2: MAC 2282 / MAC 2312
         mac2_box = self.canvas.create_rectangle(col3_left, col3_y + col3_gap, col3_left + box_width, col3_y + col3_gap + box_height, outline='black', width=2)
         mac2_text = self.canvas.create_text(
@@ -1070,6 +1188,15 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=show_mac2_info)
         self.canvas.create_window(col3_left + 2, col3_y + col3_gap + 2, window=info_btn_mac2, anchor='nw')
+
+        # Add status button for MAC 2282/2312
+        self.status_btn_mac2 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_mac2.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "MAC 2282/2312", mac2_box, self.status_btn_mac2))
+        self.canvas.create_window(col3_left + box_width, col3_y + col3_gap + box_height, 
+                                window=self.status_btn_mac2, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("MAC 2282/2312", mac2_box, self.status_btn_mac2)
 
         # Row 4: CHS 2440L / CHM 2045L
         chs_box = self.canvas.create_rectangle(col3_left, col3_y + 3*col3_gap, col3_left + box_width, col3_y + 3*col3_gap + box_height, outline='black', width=2)
@@ -1133,6 +1260,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=show_chs_info)
         self.canvas.create_window(col3_left + 2, col3_y + 3*col3_gap + 2, window=info_btn_chs, anchor='nw')
 
+        # Add status button for CHS 2440L/CHM 2045L
+        self.status_btn_chs = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_chs.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "CHS 2440L/CHM 2045L", chs_box, self.status_btn_chs))
+        self.canvas.create_window(col3_left + box_width, col3_y + 3*col3_gap + box_height, 
+                                window=self.status_btn_chs, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("CHS 2440L/CHM 2045L", chs_box, self.status_btn_chs)
+
         # Row 5: ENC 3246
         enc_box = self.canvas.create_rectangle(col3_left, col3_y + 4*col3_gap, col3_left + box_width, col3_y + 4*col3_gap + box_height, outline='black', width=2)
         enc_text = self.canvas.create_text(
@@ -1147,19 +1283,37 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('ENC', '3246'))
         self.canvas.create_window(col3_left + 2, col3_y + 4*col3_gap + 2, window=info_btn_enc, anchor='nw')
 
+        # Add status button for ENC 3246
+        self.status_btn_enc = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_enc.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "ENC 3246", enc_box, self.status_btn_enc))
+        self.canvas.create_window(col3_left + box_width, col3_y + 4*col3_gap + box_height, 
+                                window=self.status_btn_enc, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("ENC 3246", enc_box, self.status_btn_enc)
+
         # Row 6: EGS 2070
-        egs_box = self.canvas.create_rectangle(col3_left, col3_y + 5*col3_gap, col3_left + box_width, col3_y + 5*col3_gap + box_height, outline='black', width=2)
-        egs_text = self.canvas.create_text(
+        egs2070_box = self.canvas.create_rectangle(col3_left, col3_y + 5*col3_gap, col3_left + box_width, col3_y + 5*col3_gap + box_height, outline='black', width=2)
+        egs2070_text = self.canvas.create_text(
             col3_left + box_width/2,
             col3_y + 5*col3_gap + box_height/2,
             text="EGS 2070\nProf. Formation\nof Eng. I\n1 hrs F, S",
             font=("Helvetica", 13),
             justify='center'
         )
-        info_btn_egs = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
+        info_btn_egs2070 = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EGS', '2070'))
-        self.canvas.create_window(col3_left + 2, col3_y + 5*col3_gap + 2, window=info_btn_egs, anchor='nw')
+        self.canvas.create_window(col3_left + 2, col3_y + 5*col3_gap + 2, window=info_btn_egs2070, anchor='nw')
+
+        # Add status button for EGS 2070
+        self.status_btn_egs2070 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egs2070.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGS 2070", egs2070_box, self.status_btn_egs2070))
+        self.canvas.create_window(col3_left + box_width, col3_y + 5*col3_gap + box_height, 
+                                window=self.status_btn_egs2070, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGS 2070", egs2070_box, self.status_btn_egs2070)
 
         # Start of fourth column
         col4_left = col3_left + box_width + h_gap
@@ -1179,6 +1333,15 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EGN', '3373'))
         self.canvas.create_window(col4_left + 2, col4_y + 2, window=info_btn_egn, anchor='nw')
+
+        # Add status button for EGN 3373
+        self.status_btn_egn = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egn.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3373", egn_box, self.status_btn_egn))
+        self.canvas.create_window(col4_left + box_width, col4_y + box_height, 
+                                window=self.status_btn_egn, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3373", egn_box, self.status_btn_egn)
 
         # Row 2: MAC 2283 / MAC 2313
         mac3_box = self.canvas.create_rectangle(col4_left, col4_y + col4_gap, col4_left + box_width, col4_y + col4_gap + box_height, outline='black', width=2)
@@ -1242,12 +1405,21 @@ class AcademicPlanPage(ttk.Frame):
                                 command=show_mac3_info)
         self.canvas.create_window(col4_left + 2, col4_y + col4_gap + 2, window=info_btn_mac3, anchor='nw')
 
+        # Add status button for MAC 2283/2313
+        self.status_btn_mac3 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_mac3.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "MAC 2283/2313", mac3_box, self.status_btn_mac3))
+        self.canvas.create_window(col4_left + box_width, col4_y + col4_gap + box_height, 
+                                window=self.status_btn_mac3, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("MAC 2283/2313", mac3_box, self.status_btn_mac3)
+
         # Row 3: EEE 3394
         eee_box = self.canvas.create_rectangle(col4_left, col4_y + 2*col4_gap, col4_left + box_width, col4_y + 2*col4_gap + box_height, outline='black', width=2)
         eee_text = self.canvas.create_text(
             col4_left + box_width/2,
             col4_y + 2*col4_gap + box_height/2,
-            text="EEE 3394\nEE Science I\nElec Mtrls\n3 hrs F, S, Su",
+            text="EEE 3394\nEE Science 1:\nElectronic Mtrls\n3 hrs F, S",
             font=("Helvetica", 13),
             justify='center'
         )
@@ -1255,6 +1427,15 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EEE', '3394'))
         self.canvas.create_window(col4_left + 2, col4_y + 2*col4_gap + 2, window=info_btn_eee, anchor='nw')
+
+        # Add status button for EEE 3394
+        self.status_btn_eee = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_eee.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEE 3394", eee_box, self.status_btn_eee))
+        self.canvas.create_window(col4_left + box_width, col4_y + 2*col4_gap + box_height, 
+                                window=self.status_btn_eee, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEE 3394", eee_box, self.status_btn_eee)
 
         # Row 4: CHS 2440 / CHM 2045
         chs_chem_box = self.canvas.create_rectangle(col4_left, col4_y + 3*col4_gap, col4_left + box_width, col4_y + 3*col4_gap + box_height, outline='black', width=2)
@@ -1318,6 +1499,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=show_chs_chem_lecture_info)
         self.canvas.create_window(col4_left + 2, col4_y + 3*col4_gap + 2, window=info_btn_chs_chem, anchor='nw')
 
+        # Add status button for CHS 2440/CHM 2045
+        self.status_btn_chs_chem = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_chs_chem.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "CHS 2440/CHM 2045", chs_chem_box, self.status_btn_chs_chem))
+        self.canvas.create_window(col4_left + box_width, col4_y + 3*col4_gap + box_height, 
+                                window=self.status_btn_chs_chem, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("CHS 2440/CHM 2045", chs_chem_box, self.status_btn_chs_chem)
+
         # Row 5: EGN 3615
         egn_econ_box = self.canvas.create_rectangle(col4_left, col4_y + 4*col4_gap, col4_left + box_width, col4_y + 4*col4_gap + box_height, outline='black', width=2)
         egn_econ_text = self.canvas.create_text(
@@ -1332,19 +1522,37 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('EGN', '3615'))
         self.canvas.create_window(col4_left + 2, col4_y + 4*col4_gap + 2, window=info_btn_egn_econ, anchor='nw')
 
+        # Add status button for EGN 3615
+        self.status_btn_egn_econ = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egn_econ.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3615", egn_econ_box, self.status_btn_egn_econ))
+        self.canvas.create_window(col4_left + box_width, col4_y + 4*col4_gap + box_height, 
+                                window=self.status_btn_egn_econ, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3615", egn_econ_box, self.status_btn_egn_econ)
+
         # Row 6: EGS 3071
-        egs_box = self.canvas.create_rectangle(col4_left, col4_y + 5*col4_gap, col4_left + box_width, col4_y + 5*col4_gap + box_height, outline='black', width=2)
-        egs_text = self.canvas.create_text(
+        egs3071_box = self.canvas.create_rectangle(col4_left, col4_y + 5*col4_gap, col4_left + box_width, col4_y + 5*col4_gap + box_height, outline='black', width=2)
+        egs3071_text = self.canvas.create_text(
             col4_left + box_width/2,
             col4_y + 5*col4_gap + box_height/2,
             text="EGS 3071\nProf. Formation\nof Eng. II\n1 hrs F, S",
             font=("Helvetica", 13),
             justify='center'
         )
-        info_btn_egs = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
+        info_btn_egs3071 = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EGS', '3071'))
-        self.canvas.create_window(col4_left + 2, col4_y + 5*col4_gap + 2, window=info_btn_egs, anchor='nw')
+        self.canvas.create_window(col4_left + 2, col4_y + 5*col4_gap + 2, window=info_btn_egs3071, anchor='nw')
+
+        # Add status button for EGS 3071
+        self.status_btn_egs3071 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egs3071.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGS 3071", egs3071_box, self.status_btn_egs3071))
+        self.canvas.create_window(col4_left + box_width, col4_y + 5*col4_gap + box_height, 
+                                window=self.status_btn_egs3071, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGS 3071", egs3071_box, self.status_btn_egs3071)
 
         # Start of fifth column
         col5_left = col4_left + box_width + h_gap
@@ -1365,6 +1573,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('EGN', '3420'))
         self.canvas.create_window(col5_left + 2, col5_y + 3*col5_gap + 2, window=info_btn_egn_analysis, anchor='nw')
 
+        # Add status button for EGN 3420
+        self.status_btn_egn_analysis = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egn_analysis.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3420", egn_analysis_box, self.status_btn_egn_analysis))
+        self.canvas.create_window(col5_left + box_width, col5_y + 3*col5_gap + box_height, 
+                                window=self.status_btn_egn_analysis, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3420", egn_analysis_box, self.status_btn_egn_analysis)
+
         # Row 6: EGS 3072
         egs_box = self.canvas.create_rectangle(col5_left, col5_y + 5*col5_gap, col5_left + box_width, col5_y + 5*col5_gap + box_height, outline='black', width=2)
         egs_text = self.canvas.create_text(
@@ -1378,6 +1595,15 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EGS', '3072'))
         self.canvas.create_window(col5_left + 2, col5_y + 5*col5_gap + 2, window=info_btn_egs, anchor='nw')
+
+        # Add status button for EGS 3072
+        self.status_btn_egs3072 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                                width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egs3072.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGS 3072", egs_box, self.status_btn_egs3072))
+        self.canvas.create_window(col5_left + box_width, col5_y + 5*col5_gap + box_height, 
+                                window=self.status_btn_egs3072, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGS 3072", egs_box, self.status_btn_egs3072)
 
         # Start of sixth column
         col6_left = col5_left + box_width + h_gap
@@ -1398,6 +1624,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('EEL', '3472C'))
         self.canvas.create_window(col6_left + 2, col6_y + col6_gap + 2, window=info_btn_eel_science, anchor='nw')
 
+        # Add status button for EEL 3472C
+        self.status_btn_eel_science = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_eel_science.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 3472C", eel_science_box, self.status_btn_eel_science))
+        self.canvas.create_window(col6_left + box_width, col6_y + col6_gap + box_height, 
+                                window=self.status_btn_eel_science, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 3472C", eel_science_box, self.status_btn_eel_science)
+
         # Row 6: EEL 2161
         eel_comp_box = self.canvas.create_rectangle(col6_left, col6_y + 5*col6_gap, col6_left + box_width, col6_y + 5*col6_gap + box_height, outline='black', width=2)
         eel_comp_text = self.canvas.create_text(
@@ -1411,6 +1646,15 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EEL', '2161'))
         self.canvas.create_window(col6_left + 2, col6_y + 5*col6_gap + 2, window=info_btn_eel_comp, anchor='nw')
+
+        # Add status button for EEL 2161
+        self.status_btn_eel_comp = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_eel_comp.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 2161", eel_comp_box, self.status_btn_eel_comp))
+        self.canvas.create_window(col6_left + box_width, col6_y + 5*col6_gap + box_height, 
+                                window=self.status_btn_eel_comp, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 2161", eel_comp_box, self.status_btn_eel_comp)
 
         # Shift the rest of the grid to the right
         left = left + box_width + h_gap
@@ -1436,6 +1680,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('EEL', '3115L'))
         self.canvas.create_window(col7_left + 2, col7_y + 2, window=info_btn_lab1, anchor='nw')
 
+        # Add status button for EEL 3115L
+        self.status_btn_lab1 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_lab1.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 3115L", lab1_box, self.status_btn_lab1))
+        self.canvas.create_window(col7_left + box_width, col7_y + box_height, 
+                                window=self.status_btn_lab1, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 3115L", lab1_box, self.status_btn_lab1)
+
         # Row 2: EGN 3374
         egn_sys2_box = self.canvas.create_rectangle(col7_left, col7_y + col7_gap, col7_left + box_width, col7_y + col7_gap + box_height, outline='black', width=2)
         egn_sys2_text = self.canvas.create_text(
@@ -1449,6 +1702,15 @@ class AcademicPlanPage(ttk.Frame):
                                 width=2, height=1, bg='#4FC3F7', fg='white',
                                 command=lambda: self.show_course_details_box('EGN', '3374'))
         self.canvas.create_window(col7_left + 2, col7_y + col7_gap + 2, window=info_btn_egn_sys2, anchor='nw')
+
+        # Add status button for EGN 3374
+        self.status_btn_egn_sys2 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egn_sys2.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3374", egn_sys2_box, self.status_btn_egn_sys2))
+        self.canvas.create_window(col7_left + box_width, col7_y + col7_gap + box_height, 
+                                window=self.status_btn_egn_sys2, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3374", egn_sys2_box, self.status_btn_egn_sys2)
 
         # Row 4: EEL 4102
         signals_box = self.canvas.create_rectangle(col7_left, col7_y + 3*col7_gap, col7_left + box_width, col7_y + 3*col7_gap + box_height, outline='black', width=2)
@@ -1478,6 +1740,15 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('EEL', '3163C'))
         self.canvas.create_window(col7_left + 2, col7_y + 4*col7_gap + 2, window=info_btn_comp_tools, anchor='nw')
 
+        # Add status button for EEL 3163C
+        self.status_btn_comp_tools = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_comp_tools.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 3163C", comp_tools_box, self.status_btn_comp_tools))
+        self.canvas.create_window(col7_left + box_width, col7_y + 4*col7_gap + box_height, 
+                                window=self.status_btn_comp_tools, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 3163C", comp_tools_box, self.status_btn_comp_tools)
+
         # Row 6: EEL 4835
         prog_design_box = self.canvas.create_rectangle(col7_left, col7_y + 5*col7_gap, col7_left + box_width, col7_y + 5*col7_gap + box_height, outline='black', width=2)
         prog_design_text = self.canvas.create_text(
@@ -1492,10 +1763,36 @@ class AcademicPlanPage(ttk.Frame):
                                 command=lambda: self.show_course_details_box('EEL', '4835'))
         self.canvas.create_window(col7_left + 2, col7_y + 5*col7_gap + 2, window=info_btn_prog_design, anchor='nw')
 
+        # Add status button for EEL 4835
+        self.status_btn_prog_design = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_prog_design.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 4835", prog_design_box, self.status_btn_prog_design))
+        self.canvas.create_window(col7_left + box_width, col7_y + 5*col7_gap + box_height, 
+                                window=self.status_btn_prog_design, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 4835", prog_design_box, self.status_btn_prog_design)
+
         # Shift the rest of the grid to the right
         left = left + box_width + h_gap
 
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
+
+        info_btn_signals = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
+                                width=2, height=1, bg='#4FC3F7', fg='white',
+                                command=lambda: self.show_course_details_box('EEL', '4102'))
+        self.canvas.create_window(col7_left + 2, col7_y + 3*col7_gap + 2, window=info_btn_signals, anchor='nw')
+
+        # Add status button for EEL 4102
+        self.status_btn_signals = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_signals.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 4102", signals_box, self.status_btn_signals))
+        self.canvas.create_window(col7_left + box_width, col7_y + 3*col7_gap + box_height, 
+                                window=self.status_btn_signals, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 4102", signals_box, self.status_btn_signals)
+
+        # Row 5: EEL 3163C
+        comp_tools_box = self.canvas.create_rectangle(col7_left, col7_y + 4*col7_gap, col7_left + box_width, col7_y + 4*col7_gap + box_height, outline='black', width=2)
 
     def get_core_elective_display_text(self, course_code):
         if not course_code:
@@ -1605,7 +1902,6 @@ class AcademicPlanPage(ttk.Frame):
             values = tree.item(selection[0])['values']
             if values:
                 setattr(self, f'selected_core_elective_{box_number}', values[0])
-                # Update the text and remove green background
                 text_widget = getattr(self, f'core_text_{box_number}')
                 bg_item = getattr(self, f'core_bg_{box_number}', None)
                 if bg_item:
@@ -1617,6 +1913,13 @@ class AcademicPlanPage(ttk.Frame):
                                     fill='black',
                                     font=("Helvetica", 13))
                 self.update_core_elective_buttons(box_number)
+                
+                # Set initial status to "Not Started"
+                box_items = [item for item in self.canvas.find_all() if self.canvas.type(item) == 'rectangle']
+                box = box_items[box_number - 1] if box_items else None
+                if box:
+                    status_btn = getattr(self, f'core_status_btn_{box_number}')
+                    self.show_course_status_menu_default(f"Gateway Course {box_number}", box, status_btn)
                 selector.destroy()
         
         def cancel():
@@ -1658,65 +1961,26 @@ class AcademicPlanPage(ttk.Frame):
         y = (selector.winfo_screenheight() // 2) - (height // 2)
         selector.geometry(f'{width}x{height}+{x}+{y}')
 
-    def create_core_elective_box(self, box_number, x, y):
-        box_width = 220
-        box_height = 90
-        
-        # Create the box
-        box = self.canvas.create_rectangle(x, y, x + box_width, y + box_height, outline='black', width=2)
-        
-        # Add green background if no course selected
-        bg = self.canvas.create_rectangle(x+2, y+2, x+box_width-2, y+box_height-2, fill='#006747', outline='')
-        self.canvas.tag_lower(bg, box)
-        setattr(self, f'core_bg_{box_number}', bg)
-        
-        # Create text
-        text = self.canvas.create_text(
-            x + box_width/2,
-            y + box_height/2,
-            text="Add Gateway\nCourse",
-            font=("Helvetica", 12, "bold"),
-            fill='white',
-            width=box_width-16,
-            justify='center'
-        )
-        setattr(self, f'core_text_{box_number}', text)
-        
-        # Add info button
-        info_btn = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
-                            width=2, height=1, bg='#4FC3F7', fg='white',
-                            command=lambda: self.show_selected_core_elective_info(box_number))
-        self.canvas.create_window(x + 2, y + 2, window=info_btn, anchor='nw')
-        setattr(self, f'core_info_btn_{box_number}', info_btn)
-        
-        # Add clear button
-        clear_btn = tk.Button(self.canvas, text="×", font=("Helvetica", 8, "bold"), 
-                            width=2, height=1, bg='#FF0000', fg='white',
-                            command=lambda: self.clear_core_elective_selection(box_number))
-        self.canvas.create_window(x + box_width - 25, y + 2, window=clear_btn, anchor='nw')
-        setattr(self, f'core_clear_btn_{box_number}', clear_btn)
-        
-        # Update button visibility
-        self.update_core_elective_buttons(box_number)
-        
-        # Bind click events
-        self.canvas.tag_bind(box, '<Button-1>', 
-            lambda e: self.open_core_elective_selector(box_number, x, y, box_width, box_height))
-        self.canvas.tag_bind(text, '<Button-1>', 
-            lambda e: self.open_core_elective_selector(box_number, x, y, box_width, box_height))
-        self.canvas.tag_bind(bg, '<Button-1>', 
-            lambda e: self.open_core_elective_selector(box_number, x, y, box_width, box_height))
-
     def clear_core_elective_selection(self, box_number):
         setattr(self, f'selected_core_elective_{box_number}', None)
         text_widget = getattr(self, f'core_text_{box_number}')
+        box = getattr(self, f'core_box_{box_number}')
         
-        # Recreate green background
-        box_coords = self.canvas.coords(text_widget)
-        x = box_coords[0] - 110  # Approximate the original x position
-        y = box_coords[1] - 45   # Approximate the original y position
-        bg = self.canvas.create_rectangle(x+2, y+2, x+218, y+88, fill='#006747', outline='')
-        self.canvas.tag_lower(bg)
+        # Get the coordinates for the green background
+        box_coords = self.canvas.coords(box)
+        
+        # Delete old background if it exists
+        old_bg = getattr(self, f'core_bg_{box_number}', None)
+        if old_bg:
+            self.canvas.delete(old_bg)
+        
+        # Create new green background
+        bg = self.canvas.create_rectangle(
+            box_coords[0]+2, box_coords[1]+2, 
+            box_coords[2]-2, box_coords[3]-2, 
+            fill='#006747', outline=''
+        )
+        self.canvas.tag_lower(bg, box)
         setattr(self, f'core_bg_{box_number}', bg)
         
         # Update text
@@ -1724,6 +1988,15 @@ class AcademicPlanPage(ttk.Frame):
                              text="Add Gateway\nCourse",
                              font=("Helvetica", 12, "bold"),
                              fill='white')
+        
+        # Clear the course status
+        if f"Gateway Course {box_number}" in self.course_status:
+            del self.course_status[f"Gateway Course {box_number}"]
+        
+        # Reset box color to white
+        if box:
+            self.canvas.itemconfig(box, fill='')
+        
         self.update_core_elective_buttons(box_number)
 
     def show_selected_core_elective_info(self, box_number):
@@ -1774,12 +2047,26 @@ class AcademicPlanPage(ttk.Frame):
     def update_core_elective_buttons(self, box_number):
         info_btn = getattr(self, f'core_info_btn_{box_number}')
         clear_btn = getattr(self, f'core_clear_btn_{box_number}')
+        status_btn = getattr(self, f'core_status_btn_{box_number}')
+        box = getattr(self, f'core_box_{box_number}')
+        
         if getattr(self, f'selected_core_elective_{box_number}', None):
             info_btn.config(state='normal')
             clear_btn.config(state='normal')
+            status_btn.config(state='normal')
+            # Set initial "Not Started" state if no status exists
+            if f"Gateway Course {box_number}" not in self.course_status:
+                self.show_course_status_menu_default(f"Gateway Course {box_number}", box, status_btn)
         else:
             info_btn.config(state='disabled')
             clear_btn.config(state='disabled')
+            status_btn.config(state='disabled', text="○", bg='lightgray')
+            # Clear any existing status
+            if f"Gateway Course {box_number}" in self.course_status:
+                del self.course_status[f"Gateway Course {box_number}"]
+            # Reset box color
+            if box:
+                self.canvas.itemconfig(box, fill='')
 
     def draw_core_electives(self):
         # Position to the left of track selection
@@ -1800,10 +2087,10 @@ class AcademicPlanPage(ttk.Frame):
 
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
 
-    def open_humanities_selector(self, x, y, w, h):
+    def open_humanities_selector(self, left_margin, hum_y, box_width, box_height):
         selector = tk.Toplevel(self)
         selector.title("Select Humanities Course")
-        selector.geometry(f"500x400+{int(self.winfo_rootx() + x + w//2)}+{int(self.winfo_rooty() + y + h//2)}")
+        selector.geometry(f"500x400+{int(self.winfo_rootx() + left_margin + box_width//2)}+{int(self.winfo_rooty() + hum_y + box_height//2)}")
         selector.grab_set()
         tk.Label(selector, text="Choose a course:", font=("Helvetica", 12)).pack(pady=10)
         options = [
@@ -1853,15 +2140,17 @@ class AcademicPlanPage(ttk.Frame):
             display_text = f"{values[0]}\n{values[1]}\n{values[2]} hrs F, S, Su"
             self.canvas.itemconfig(self.hum_text, text=display_text)
             self.update_humanities_buttons()
+            # Set default "Not Started" state
+            self.show_course_status_menu_default("GenEd Humanities", self.hum_box, self.status_btn_hum)
             selector.destroy()
         btn = tk.Button(selector, text="OK", command=set_course, font=("Helvetica", 11, 'bold'), bg='#006747', fg='white', relief='flat', activebackground='#004F2D', activeforeground='white')
         btn.pack(pady=10)
         selector.bind('<Return>', lambda e: set_course())
 
-    def open_social_selector(self, x, y, w, h):
+    def open_social_selector(self, left_margin, soc_y, box_width, box_height):
         selector = tk.Toplevel(self)
         selector.title("Select Social Studies Course")
-        selector.geometry(f"500x400+{int(self.winfo_rootx() + x + w//2)}+{int(self.winfo_rooty() + y + h//2)}")
+        selector.geometry(f"500x400+{int(self.winfo_rootx() + left_margin + box_width//2)}+{int(self.winfo_rooty() + soc_y + box_height//2)}")
         selector.grab_set()
         tk.Label(selector, text="Choose a course:", font=("Helvetica", 12)).pack(pady=10)
         options = [
@@ -1911,36 +2200,88 @@ class AcademicPlanPage(ttk.Frame):
             display_text = f"{values[0]}\n{values[1]}\n{values[2]} hrs F, S, Su"
             self.canvas.itemconfig(self.soc_text, text=display_text)
             self.update_social_buttons()
+            # Set default "Not Started" state
+            self.show_course_status_menu_default("GenEd Social Studies", self.soc_box, self.status_btn_soc)
             selector.destroy()
         btn = tk.Button(selector, text="OK", command=set_course, font=("Helvetica", 11, 'bold'), bg='#006747', fg='white', relief='flat', activebackground='#004F2D', activeforeground='white')
         btn.pack(pady=10)
         selector.bind('<Return>', lambda e: set_course())
 
+    def show_course_status_menu_default(self, course_code, box_id, button):
+        """Set the default 'Not Started' state for a newly selected course"""
+        self.course_status[course_code] = "Not Started"
+        self.canvas.itemconfig(box_id, fill="#FF0000")  # Changed from #FFA100 to #FF0000
+        button.configure(text="○", bg="lightgray")
+
     def update_humanities_buttons(self):
         if self.selected_humanities_course:
             self.hum_info_btn.config(state='normal')
             self.hum_clear_btn.config(state='normal')
+            self.status_btn_hum.config(state='normal')  # Enable status button when course is selected
+            if self.hum_bg:  # Remove green background when course is selected
+                self.canvas.delete(self.hum_bg)
+                self.hum_bg = None
+            # Set initial "Not Started" state if no status exists
+            if "GenEd Humanities" not in self.course_status:
+                self.show_course_status_menu_default("GenEd Humanities", self.hum_box, self.status_btn_hum)
         else:
             self.hum_info_btn.config(state='disabled')
             self.hum_clear_btn.config(state='disabled')
+            self.status_btn_hum.config(state='disabled', text="○", bg='lightgray')  # Reset and disable status button
+            # Clear any existing status
+            if "GenEd Humanities" in self.course_status:
+                del self.course_status["GenEd Humanities"]
+            # Restore green background and white text for "Add GenEd" prompt
+            if not self.hum_bg:
+                coords = self.canvas.coords(self.hum_box)
+                self.hum_bg = self.canvas.create_rectangle(
+                    coords[0]+2, coords[1]+2, coords[2]-2, coords[3]-2,
+                    fill='#006747', outline=''
+                )
+                self.canvas.tag_lower(self.hum_bg, self.hum_box)
+            self.canvas.itemconfig(self.hum_box, fill='')  # Remove any fill color from the box itself
+            self.canvas.itemconfig(self.hum_text, fill='white', 
+                                 text="Add GenEd Core Humanities",
+                                 font=("Helvetica", 12, "bold"))
 
     def update_social_buttons(self):
         if self.selected_social_course:
             self.soc_info_btn.config(state='normal')
             self.soc_clear_btn.config(state='normal')
+            self.status_btn_soc.config(state='normal')  # Enable status button when course is selected
+            if self.soc_bg:  # Remove green background when course is selected
+                self.canvas.delete(self.soc_bg)
+                self.soc_bg = None
+            # Set initial "Not Started" state if no status exists
+            if "GenEd Social Studies" not in self.course_status:
+                self.show_course_status_menu_default("GenEd Social Studies", self.soc_box, self.status_btn_soc)
         else:
             self.soc_info_btn.config(state='disabled')
             self.soc_clear_btn.config(state='disabled')
+            self.status_btn_soc.config(state='disabled', text="○", bg='lightgray')  # Reset and disable status button
+            # Clear any existing status
+            if "GenEd Social Studies" in self.course_status:
+                del self.course_status["GenEd Social Studies"]
+            # Restore green background and white text for "Add GenEd" prompt
+            if not self.soc_bg:
+                coords = self.canvas.coords(self.soc_box)
+                self.soc_bg = self.canvas.create_rectangle(
+                    coords[0]+2, coords[1]+2, coords[2]-2, coords[3]-2,
+                    fill='#006747', outline=''
+                )
+                self.canvas.tag_lower(self.soc_bg, self.soc_box)
+            self.canvas.itemconfig(self.soc_box, fill='')  # Remove any fill color from the box itself
+            self.canvas.itemconfig(self.soc_text, fill='white',
+                                 text="Add GenEd Core Social Studies",
+                                 font=("Helvetica", 12, "bold"))
 
     def clear_humanities_selection(self):
         self.selected_humanities_course = None
-        self.canvas.itemconfig(self.hum_text, text="Add GenEd Core Humanities")
-        self.update_humanities_buttons()
+        self.update_humanities_buttons()  # This will handle restoring the green background
 
     def clear_social_selection(self):
         self.selected_social_course = None
-        self.canvas.itemconfig(self.soc_text, text="Add GenEd Core Social Studies")
-        self.update_social_buttons()
+        self.update_social_buttons()  # This will handle restoring the green background
 
     def show_selected_humanities_info(self):
         if self.selected_humanities_course:
@@ -1954,52 +2295,78 @@ class AcademicPlanPage(ttk.Frame):
 
     def show_course_details_box(self, prefix, number):
         """Display detailed course information in a popup window."""
-        # Course details dictionary
-        course_details = {
-            'EEL 4906': {
-                'name': 'Senior Design I',
-                'description': 'First part of the senior design experience, focusing on project planning, requirements gathering, and preliminary design.',
-                'prerequisites': 'Senior Standing in Electrical Engineering',
-                'credits': '3',
-                'terms': 'Fall, Spring'
-            },
-            'EEL 4914': {
-                'name': 'Senior Design II',
-                'description': 'Second part of the senior design experience, focusing on project implementation, testing, and final documentation.',
-                'prerequisites': 'EEL 4906',
-                'credits': '3',
-                'terms': 'Fall, Spring'
+        try:
+            from courses import courses
+            course_info = courses["University of South Florida"][prefix][number]
+            details = (
+                f"Course: {prefix} {number}\n\n"
+                f"Name: {course_info.get('Class Full Name', 'N/A')}\n\n"
+                f"Credits: {course_info.get('Credit Hours', 'N/A')}\n\n"
+                f"Description: {course_info.get('Description', 'N/A')}\n\n"
+                f"Prerequisites: {course_info.get('Prereqs', 'N/A')}\n\n"
+                f"Corequisites: {course_info.get('Coreqs', 'N/A')}"
+            )
+        except (ImportError, KeyError):
+            # Fallback course details dictionary for when courses.py is not available
+            course_details = {
+                'ENC 1101': {
+                    'name': 'Composition I',
+                    'description': 'This course emphasizes the development of effective written communication through analysis and understanding of audience, situation, and purpose.',
+                    'prerequisites': 'None',
+                    'credits': '3',
+                    'terms': 'Fall, Spring, Summer'
+                },
+                'ENC 1102': {
+                    'name': 'Composition II',
+                    'description': 'This course emphasizes critical reading, writing, and research. Students will develop strategies for writing effective arguments and papers.',
+                    'prerequisites': 'ENC 1101 with a minimum grade of C-',
+                    'credits': '3',
+                    'terms': 'Fall, Spring, Summer'
+                },
+                'EEL 4906': {
+                    'name': 'Senior Design I',
+                    'description': 'First part of the senior design experience, focusing on project planning, requirements gathering, and preliminary design.',
+                    'prerequisites': 'Senior Standing in Electrical Engineering',
+                    'credits': '3',
+                    'terms': 'Fall, Spring'
+                },
+                'EEL 4914': {
+                    'name': 'Senior Design II',
+                    'description': 'Second part of the senior design experience, focusing on project implementation, testing, and final documentation.',
+                    'prerequisites': 'EEL 4906',
+                    'credits': '3',
+                    'terms': 'Fall, Spring'
+                }
             }
-        }
 
-        # Get course code
-        course_code = f'{prefix} {number}'
-        
-        # Get course info
-        course_info = course_details.get(course_code)
-        if not course_info:
-            messagebox.showinfo("Course Info", f"No details found for {course_code}.")
-            return
+            # Get course code and info
+            course_code = f'{prefix} {number}'
+            course_info = course_details.get(course_code, {
+                'name': 'N/A',
+                'description': 'Course information not available',
+                'prerequisites': 'N/A',
+                'credits': '3',
+                'terms': 'N/A'
+            })
+            
+            details = (
+                f"Course: {course_code}\n\n"
+                f"Name: {course_info['name']}\n\n"
+                f"Credits: {course_info['credits']}\n\n"
+                f"Description: {course_info['description']}\n\n"
+                f"Prerequisites: {course_info['prerequisites']}\n\n"
+                f"Terms Offered: {course_info['terms']}"
+            )
 
         # Create popup window
         win = tk.Toplevel(self)
-        win.title(f"Course Info: {course_code}")
+        win.title(f"Course Info: {prefix} {number}")
         win.geometry("540x420")
         win.configure(bg='#E6F3FF')
 
         # Create main frame
         frame = tk.Frame(win, bg='#E6F3FF')
         frame.pack(fill='both', expand=True, padx=10, pady=10)
-
-        # Format details
-        details = (
-            f"Course: {course_code}\n\n"
-            f"Name: {course_info['name']}\n\n"
-            f"Credits: {course_info['credits']}\n\n"
-            f"Description: {course_info['description']}\n\n"
-            f"Prerequisites: {course_info['prerequisites']}\n\n"
-            f"Terms Offered: {course_info['terms']}"
-        )
 
         # Create text widget
         text_widget = tk.Text(frame, font=("Helvetica", 13), bg='#E6F3FF', fg='#006747', 
@@ -2014,17 +2381,6 @@ class AcademicPlanPage(ttk.Frame):
                        relief='flat', activebackground='#004F2D', activeforeground='white')
         btn.pack(pady=10)
 
-    def on_mousewheel(self, event):
-        # Handle different event types for different systems
-        if event.num == 4:  # Linux scroll up
-            self.canvas.xview_scroll(-1, "units")
-        elif event.num == 5:  # Linux scroll down
-            self.canvas.xview_scroll(1, "units")
-        else:  # Windows and macOS
-            # Convert vertical scroll to horizontal
-            # Adjust the multiplier (-1 or 1) based on your preferred scroll direction
-            self.canvas.xview_scroll(int(-1 * (event.delta / 120)), "units")
-#########################################################################################################################
     def open_track1_course_selector(self, box_number, x, y, w, h):
         selector = tk.Toplevel(self)
         selector.title("Select Bioelectrical Systems Course")
@@ -2508,264 +2864,6 @@ class AcademicPlanPage(ttk.Frame):
                 fill='white', outline='white')
             self.create_track_course_box(track_name, i+1, x + i * (box_width + gap), y)
 
-    def draw_track_electives(self, start_x, start_y):
-        """Draw the track electives section with course selection boxes."""
-        # Constants for layout
-        box_w = 220
-        box_h = 90
-        h_gap = 40
-        v_gap = 40
-
-        # Track Electives section title
-        self.canvas.create_text(start_x + 2 * (box_w + h_gap), start_y, 
-                              text="Track Electives", font=("Helvetica", 16))
-        track_y = start_y + 30
-
-        # Draw 2 rows of 4 boxes for track electives
-        for row in range(2):
-            for col in range(4):
-                x = start_x + col * (box_w + h_gap)
-                y = track_y + row * (box_h + v_gap)
-                box_number = row * 4 + col
-                self.draw_single_track_elective_box(box_number, x, y)
-
-        return track_y + 2 * (box_h + v_gap) + 40  # Return y position for next section
-
-    def draw_single_track_elective_box(self, box_number: int, x: int, y: int):
-        """Draw a single track elective box with course selection functionality."""
-        box_width = 220
-        box_height = 90
-        
-        # Create main box
-        box = self.canvas.create_rectangle(
-            x, y, x + box_width, y + box_height,
-            outline='black', width=2
-        )
-        
-        # Determine box state and appearance
-        course = self.selected_track_electives[box_number] if hasattr(self, 'selected_track_electives') else None
-        if course:
-            # Course is selected
-            bg_color = 'white'
-            text_color = 'black'
-            text = f"{course.code}\n{course.name}\n{course.terms}"
-            font = ("Helvetica", 11)
-        else:
-            # Empty box
-            bg_color = '#006747'  # USF Green
-            text_color = 'white'
-            text = "Add Track\nElective"
-            font = ("Helvetica", 12, "bold")
-        
-        # Create background
-        bg = self.canvas.create_rectangle(
-            x+2, y+2, x+box_width-2, y+box_height-2,
-            fill=bg_color, outline=''
-        )
-        self.canvas.tag_lower(bg, box)
-        
-        # Create text
-        text_id = self.canvas.create_text(
-            x + box_width/2, y + box_height/2,
-            text=text,
-            font=font,
-            fill=text_color,
-            width=box_width-16,
-            justify='center'
-        )
-        
-        # Info button - always visible
-        info_btn = tk.Button(
-            self.canvas,
-            text="i",
-            font=("Helvetica", 8, "bold"),
-            width=2, height=1,
-            bg='#4FC3F7',
-            fg='white',
-            command=lambda: self.show_track_elective_info(box_number) if course else None
-        )
-        self.canvas.create_window(
-            x + 2, y + 2,
-            window=info_btn,
-            anchor='nw'
-        )
-        
-        # Clear button - always visible
-        clear_btn = tk.Button(
-            self.canvas,
-            text="×",
-            font=("Helvetica", 8, "bold"),
-            width=2, height=1,
-            bg='#FF5252',
-            fg='white',
-            command=lambda: self.clear_track_elective_selection(box_number) if course else None
-        )
-        self.canvas.create_window(
-            x + box_width - 25, y + 2,
-            window=clear_btn,
-            anchor='nw'
-        )
-        
-        # Add click binding for empty boxes
-        if not course:
-            for item in (box, bg, text_id):
-                self.canvas.tag_bind(
-                    item,
-                    '<Button-1>',
-                    lambda e, bn=box_number, cx=x, cy=y: 
-                        self.open_track_elective_selector(bn, cx, cy, box_width, box_height)
-                )
-
-    def open_track_elective_selector(self, box_number, x, y, w, h):
-        """Open a dialog to select a track elective course."""
-        selector = tk.Toplevel(self)
-        selector.title("Select Track Elective")
-        selector.geometry(f"500x400+{int(self.winfo_rootx() + x + w//2)}+{int(self.winfo_rooty() + y + h//2)}")
-        selector.grab_set()
-        selector.configure(bg='#E6F3FF')
-
-        main_frame = tk.Frame(selector, bg='#E6F3FF')
-        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
-
-        title_label = tk.Label(main_frame, 
-                             text="Choose a Track Elective:", 
-                             font=("Helvetica", 12, "bold"),
-                             bg='#E6F3FF')
-        title_label.pack(pady=(0, 10))
-        
-        tree_frame = tk.Frame(main_frame)
-        tree_frame.pack(fill='both', expand=True)
-        tree_scroll = ttk.Scrollbar(tree_frame)
-        tree_scroll.pack(side='right', fill='y')
-        
-        style = ttk.Style()
-        style.configure("Treeview", font=("Helvetica", 11), rowheight=30)
-        style.configure("Treeview.Heading", font=("Helvetica", 11, "bold"))
-        
-        tree = ttk.Treeview(tree_frame, 
-                           columns=("Code", "Name", "Term"),
-                           show="headings",
-                           height=6,
-                           selectmode="browse",
-                           yscrollcommand=tree_scroll.set)
-        tree.column("Code", width=120, anchor="center")
-        tree.column("Name", width=250, anchor="w")
-        tree.column("Term", width=100, anchor="center")
-        tree.heading("Code", text="Course Code")
-        tree.heading("Name", text="Course Name")
-        tree.heading("Term", text="Term(s)")
-        
-        # Add all track elective courses to the tree
-        for track_name, courses in self.TRACK_DATABASE.items():
-            for course in courses:
-                tree.insert("", "end", values=(course.code, course.name, course.terms))
-        
-        tree.pack(side='left', fill='both', expand=True)
-        tree_scroll.config(command=tree.yview)
-        
-        # Select current course if set
-        current_course = self.selected_track_electives[box_number] if hasattr(self, 'selected_track_electives') else None
-        if current_course:
-            for item in tree.get_children():
-                if tree.item(item)['values'][0] == current_course.code:
-                    tree.selection_set(item)
-                    tree.see(item)
-                    break
-        
-        button_frame = tk.Frame(main_frame, bg='#E6F3FF')
-        button_frame.pack(fill='x', pady=(20, 0))
-        
-        def set_course():
-            selection = tree.selection()
-            if not selection:
-                return
-            values = tree.item(selection[0])['values']
-            if values:
-                # Find the course object from the track database
-                course = None
-                for track_courses in self.TRACK_DATABASE.values():
-                    for c in track_courses:
-                        if c.code == values[0]:
-                            course = c
-                            break
-                    if course:
-                        break
-                
-                if course:
-                    if not hasattr(self, 'selected_track_electives'):
-                        self.selected_track_electives = [None] * 8
-                    self.selected_track_electives[box_number] = course
-                    self.draw_sections()  # Redraw all sections to update the display
-                    selector.destroy()
-        
-        def cancel():
-            selector.destroy()
-        
-        ok_button = tk.Button(
-            button_frame,
-            text="Select",
-            command=set_course,
-            font=("Helvetica", 11, "bold"),
-            bg='#006747',
-            fg='white',
-            width=10,
-            relief='flat',
-            activebackground='#004F2D',
-            activeforeground='white'
-        )
-        ok_button.pack(side='right', padx=5)
-        
-        cancel_button = tk.Button(
-            button_frame,
-            text="Cancel",
-            command=cancel,
-            font=("Helvetica", 11),
-            bg='#E6F3FF',
-            width=10
-        )
-        cancel_button.pack(side='right', padx=5)
-        
-        tree.bind('<Double-1>', lambda e: set_course())
-        selector.bind('<Return>', lambda e: set_course())
-        selector.bind('<Escape>', lambda e: cancel())
-
-    def show_track_elective_info(self, box_number):
-        """Show information about the selected track elective course."""
-        course = self.selected_track_electives[box_number] if hasattr(self, 'selected_track_electives') else None
-        if not course:
-            return
-
-        win = tk.Toplevel(self)
-        win.title(f"Course Info: {course.code}")
-        win.geometry("540x420")
-        win.configure(bg='#E6F3FF')
-
-        frame = tk.Frame(win, bg='#E6F3FF')
-        frame.pack(fill='both', expand=True, padx=10, pady=10)
-
-        details = (
-            f"Course: {course.code}\n\n"
-            f"Name: {course.name}\n\n"
-            f"Terms Offered: {course.terms}"
-        )
-
-        text_widget = tk.Text(frame, font=("Helvetica", 13), bg='#E6F3FF', fg='#006747', 
-                             wrap='word', borderwidth=0, highlightthickness=0)
-        text_widget.insert('1.0', details)
-        text_widget.config(state='disabled')
-        text_widget.pack(fill='both', expand=True, padx=10, pady=10)
-
-        btn = tk.Button(frame, text="Close", command=win.destroy, 
-                       bg='#006747', fg='white', font=("Helvetica", 11, 'bold'),
-                       relief='flat', activebackground='#004F2D', activeforeground='white')
-        btn.pack(pady=10)
-
-    def clear_track_elective_selection(self, box_number):
-        """Clear a selected track elective."""
-        if hasattr(self, 'selected_track_electives'):
-            self.selected_track_electives[box_number] = None
-            self.draw_sections()  # Redraw all sections to update the display
-
     def draw_tech_electives(self):
         # Position for technical electives - moved further right
         tech_start_x = 4400 # Moved 300 pixels right (from 3500)
@@ -2806,6 +2904,20 @@ class AcademicPlanPage(ttk.Frame):
             font=("Helvetica", 13),
             justify='center'
         )
+        # Add info button for Design 1
+        info_btn_design1 = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
+                            width=2, height=1, bg='#4FC3F7', fg='white',
+                            command=lambda: self.show_course_details_box('EEL', '4906'))
+        self.canvas.create_window(design_start_x + 2, design_start_y + 2, window=info_btn_design1, anchor='nw')
+
+        # Add status button for Design 1
+        self.status_btn_design1 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_design1.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 4906", design1_box, self.status_btn_design1))
+        self.canvas.create_window(design_start_x + box_width, design_start_y + box_height, 
+                                window=self.status_btn_design1, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 4906", design1_box, self.status_btn_design1)
 
         # Draw Design 2 box
         design2_x = design_start_x + box_width + tech_gap
@@ -2820,13 +2932,27 @@ class AcademicPlanPage(ttk.Frame):
             font=("Helvetica", 13),
             justify='center'
         )
+        # Add info button for Design 2
+        info_btn_design2 = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
+                            width=2, height=1, bg='#4FC3F7', fg='white',
+                            command=lambda: self.show_course_details_box('EEL', '4914'))
+        self.canvas.create_window(design2_x + 2, design_start_y + 2, window=info_btn_design2, anchor='nw')
+
+        # Add status button for Design 2
+        self.status_btn_design2 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_design2.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EEL 4914", design2_box, self.status_btn_design2))
+        self.canvas.create_window(design2_x + box_width, design_start_y + box_height, 
+                                window=self.status_btn_design2, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EEL 4914", design2_box, self.status_btn_design2)
 
         # Draw Credit Hours text - positioned to the right of Design boxes
         credit_x = design2_x + box_width + tech_gap + 40  # Further right of Design 2 box
         credit_y = design_start_y + box_height/2  # Vertically centered with design boxes
         self.canvas.create_text(
             credit_x, credit_y,
-            text="Total Technical Elective Hours: 24\nTotal Design Hours: 6",
+            text="Total Elective Hours (has to be 43 or higher):",
             font=("Helvetica", 14, "bold"),
             justify='left',
             anchor='w'
@@ -2839,8 +2965,9 @@ class AcademicPlanPage(ttk.Frame):
         box_width = 220
         box_height = 90
         
-        # Create the box
+        # Create the box and store its reference
         box = self.canvas.create_rectangle(x, y, x + box_width, y + box_height, outline='black', width=2)
+        setattr(self, f'tech_box_{box_number}', box)
         
         # Add green background if no course selected
         bg = self.canvas.create_rectangle(x+2, y+2, x+box_width-2, y+box_height-2, fill='#006747', outline='')
@@ -2872,8 +2999,19 @@ class AcademicPlanPage(ttk.Frame):
                              command=lambda: self.clear_tech_elective_selection(box_number))
         self.canvas.create_window(x + box_width - 26, y + 2, window=clear_btn, anchor='nw')
         setattr(self, f'tech_clear_btn_{box_number}', clear_btn)
+
+        # Add status button
+        status_btn = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black', state='disabled')
+        status_btn.bind('<Button-1>', lambda e: self.show_course_status_menu(e, f"Technical Elective {box_number}", box, status_btn))
+        self.canvas.create_window(x + box_width, y + box_height, 
+                                window=status_btn, anchor='se')
+        setattr(self, f'tech_status_btn_{box_number}', status_btn)
         
-        # Bind click to open selector
+        # Update button visibility
+        self.update_tech_elective_buttons(box_number)
+        
+        # Bind click events
         self.canvas.tag_bind(box, '<Button-1>', 
                            lambda e: self.open_tech_elective_selector(box_number, x, y, box_width, box_height))
         self.canvas.tag_bind(text, '<Button-1>', 
@@ -3074,38 +3212,180 @@ class AcademicPlanPage(ttk.Frame):
             btn.pack(pady=10)
 
     def clear_tech_elective_selection(self, box_number):
-        # Clear the selected course
         setattr(self, f'selected_tech_elective_{box_number}', None)
-        
-        # Update the display
         text_widget = getattr(self, f'tech_text_{box_number}')
+        box = getattr(self, f'tech_box_{box_number}')
+        
+        # Get the coordinates for the green background
+        box_coords = self.canvas.coords(box)
+        
+        # Delete old background if it exists
+        old_bg = getattr(self, f'tech_bg_{box_number}', None)
+        if old_bg:
+            self.canvas.delete(old_bg)
+        
+        # Create new green background
+        bg = self.canvas.create_rectangle(
+            box_coords[0]+2, box_coords[1]+2, 
+            box_coords[2]-2, box_coords[3]-2, 
+            fill='#006747', outline=''
+        )
+        self.canvas.tag_lower(bg, box)
+        setattr(self, f'tech_bg_{box_number}', bg)
+        
+        # Update text
         self.canvas.itemconfig(text_widget, 
                              text="Add Technical\nElective",
-                             fill='white',
-                             font=("Helvetica", 12, "bold"))
+                             font=("Helvetica", 12, "bold"),
+                             fill='white')
         
-        # Add back the green background
-        bg_item = getattr(self, f'tech_bg_{box_number}', None)
-        if not bg_item:
-            box = self.canvas.find_withtag(f'tech_box_{box_number}')[0]
-            coords = self.canvas.coords(box)
-            bg = self.canvas.create_rectangle(coords[0]+2, coords[1]+2, coords[2]-2, coords[3]-2, 
-                                           fill='#006747', outline='')
-            self.canvas.tag_lower(bg, box)
-            setattr(self, f'tech_bg_{box_number}', bg)
+        # Clear the course status
+        if f"Technical Elective {box_number}" in self.course_status:
+            del self.course_status[f"Technical Elective {box_number}"]
         
-        # Update button states
+        # Reset box color to white
+        if box:
+            self.canvas.itemconfig(box, fill='')
+        
         self.update_tech_elective_buttons(box_number)
 
     def update_tech_elective_buttons(self, box_number):
         info_btn = getattr(self, f'tech_info_btn_{box_number}')
         clear_btn = getattr(self, f'tech_clear_btn_{box_number}')
+        status_btn = getattr(self, f'tech_status_btn_{box_number}')
+        box = getattr(self, f'tech_box_{box_number}')
+        
         if getattr(self, f'selected_tech_elective_{box_number}', None):
             info_btn.config(state='normal')
             clear_btn.config(state='normal')
+            status_btn.config(state='normal')
+            # Set initial "Not Started" state if no status exists
+            if f"Technical Elective {box_number}" not in self.course_status:
+                self.show_course_status_menu_default(f"Technical Elective {box_number}", box, status_btn)
         else:
             info_btn.config(state='disabled')
             clear_btn.config(state='disabled')
+            status_btn.config(state='disabled', text="○", bg='lightgray')
+
+    def draw_sections(self):
+        """Redraw all sections of the academic plan"""
+        self.canvas.delete('all')  # Clear canvas
+        self.draw_general_education_requirements()
+        self.draw_required_ee_coursework()
+        self.draw_track_selection()
+        self.draw_core_electives()
+        self.draw_tech_electives()
+        self.canvas.config(scrollregion=self.canvas.bbox('all'))
+
+    def open_track_course_selector_old(self, track_name, box_number, x, y, w, h):
+        """DEPRECATED: Use open_track_course_selector instead"""
+        return self.open_track_course_selector(track_name, box_number, x, y, w, h)
+
+    def show_course_status_menu(self, event, course_code, box_id, button):
+        """Show the status menu for course status"""
+        # Don't show menu if button is disabled
+        if button['state'] == 'disabled':
+            return
+            
+        menu = tk.Menu(self, tearoff=0)
+        
+        def set_status(status):
+            self.course_status[course_code] = status
+            # Store current text and font
+            text_items = self.canvas.find_overlapping(*self.canvas.coords(box_id))
+            text_item = None
+            current_text = ""
+            current_font = ""
+            
+            for item in text_items:
+                if self.canvas.type(item) == "text":
+                    text_item = item
+                    break
+            
+            if text_item:
+                current_text = self.canvas.itemcget(text_item, "text")
+                current_font = self.canvas.itemcget(text_item, "font")
+            
+            # Update box appearance based on status
+            if status == "Complete":
+                self.canvas.itemconfig(box_id, fill="#90EE90")  # Light green
+                button.configure(text="✓", bg="#90EE90")
+            elif status == "In Progress":
+                self.canvas.itemconfig(box_id, fill="#FFD700")  # Gold
+                button.configure(text="...", bg="#FFD700")
+            else:  # Not Started
+                self.canvas.itemconfig(box_id, fill="#FF0000")  # Red
+                button.configure(text="○", bg="lightgray")
+                
+            # Restore text if it was found
+            if text_item:
+                self.canvas.itemconfig(text_item, text=current_text, font=current_font)
+                self.canvas.tag_raise(text_item)
+
+        menu.add_command(label="Complete", command=lambda: set_status("Complete"))
+        menu.add_command(label="In Progress", command=lambda: set_status("In Progress"))
+        menu.add_command(label="Not Started", command=lambda: set_status("Not Started"))
+        
+        # Display the menu at button position
+        menu.post(event.x_root, event.y_root)
+
+    def create_core_elective_box(self, box_number, x, y):
+        box_width = 220
+        box_height = 90
+        
+        # Create the box and store its reference
+        box = self.canvas.create_rectangle(x, y, x + box_width, y + box_height, outline='black', width=2)
+        setattr(self, f'core_box_{box_number}', box)
+        
+        # Add green background if no course selected
+        bg = self.canvas.create_rectangle(x+2, y+2, x+box_width-2, y+box_height-2, fill='#006747', outline='')
+        self.canvas.tag_lower(bg, box)
+        setattr(self, f'core_bg_{box_number}', bg)
+        
+        # Create text
+        text = self.canvas.create_text(
+            x + box_width/2,
+            y + box_height/2,
+            text="Add Gateway\nCourse",
+            font=("Helvetica", 12, "bold"),
+            fill='white',
+            width=box_width-16,
+            justify='center'
+        )
+        setattr(self, f'core_text_{box_number}', text)
+        
+        # Add info button
+        info_btn = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
+                            width=2, height=1, bg='#4FC3F7', fg='white',
+                            command=lambda: self.show_selected_core_elective_info(box_number))
+        self.canvas.create_window(x + 2, y + 2, window=info_btn, anchor='nw')
+        setattr(self, f'core_info_btn_{box_number}', info_btn)
+        
+        # Add clear button
+        clear_btn = tk.Button(self.canvas, text="×", font=("Helvetica", 8, "bold"), 
+                            width=2, height=1, bg='#FF0000', fg='white',
+                            command=lambda: self.clear_core_elective_selection(box_number))
+        self.canvas.create_window(x + box_width - 25, y + 2, window=clear_btn, anchor='nw')
+        setattr(self, f'core_clear_btn_{box_number}', clear_btn)
+
+        # Add status button
+        status_btn = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black', state='disabled')
+        status_btn.bind('<Button-1>', lambda e: self.show_course_status_menu(e, f"Gateway Course {box_number}", box, status_btn))
+        self.canvas.create_window(x + box_width, y + box_height, 
+                                window=status_btn, anchor='se')
+        setattr(self, f'core_status_btn_{box_number}', status_btn)
+        
+        # Update button visibility
+        self.update_core_elective_buttons(box_number)
+        
+        # Bind click events
+        self.canvas.tag_bind(box, '<Button-1>', 
+            lambda e: self.open_core_elective_selector(box_number, x, y, box_width, box_height))
+        self.canvas.tag_bind(text, '<Button-1>', 
+            lambda e: self.open_core_elective_selector(box_number, x, y, box_width, box_height))
+        self.canvas.tag_bind(bg, '<Button-1>', 
+            lambda e: self.open_core_elective_selector(box_number, x, y, box_width, box_height))
 
 if __name__ == "__main__":
     root = tk.Tk()
