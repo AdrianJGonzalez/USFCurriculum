@@ -69,7 +69,22 @@ class TranscriptPage(ttk.Frame):
             style='TranscriptLabel.TLabel'
         )
         header.pack(pady=10)
-        
+        #PDF scaling notes
+        note1 = ttk.Label(
+            self,
+            text="* PDF Needs to Scale Down to 88%",
+            font=('Helvetica', 10),
+            style='TranscriptLabel.TLabel'
+        )
+        note1.pack(pady=(0, 0))
+
+        note2 = ttk.Label(
+            self,
+            text="* To Save Transcript at 88% Scaled: Print this page -> More settings -> Scale -> 88 -> Save",
+            font=('Helvetica', 10),
+            style='TranscriptLabel.TLabel'
+        )
+        note2.pack(pady=(0, 10))       
         # Upload frame
         upload_frame = ttk.LabelFrame(
             self, 
