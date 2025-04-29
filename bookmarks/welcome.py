@@ -43,12 +43,13 @@ class WelcomePage(ttk.Frame):
         description = ttk.Label(
             container,
             text="Use the tabs above to navigate through different sections:\n\n\n" +
-                 "• Course Catalog - Browse available courses\n\n" +
-                 "• Semester Plan - Plan your courses semester by semester\n\n" +
-                 "• Degree Selector - Choose your degree program\n\n" +
                  "• Upload Transcript - Upload and manage your transcripts\n\n" +
+                 "• Semester Plan - Plan your courses semester by semester\n\n" +
+                 "• Academic Plan - Plan your degree \n\n" +
                  "• Advising - Select your department and information!\n\n"+
-                 "• FAQs - Frequently Asked Questions",
+                 "• FAQs - Frequently Asked Questions\n\n" +
+                 "• Course Catalog - Browse available courses\n\n" +
+                 "• Course Editor - Create or edit course entries with details.\n" ,
             style="Welcome.TLabel",
             wraplength=600,
             justify="center"
