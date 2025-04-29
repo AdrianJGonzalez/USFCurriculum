@@ -8,6 +8,13 @@ class Course:
     code: str
     name: str
     terms: str
+    credits: str = ""  # Added credits field with default empty string
+
+    def __init__(self, code: str, name: str, terms: str, credits: str = ""):
+        self.code = code
+        self.name = name
+        self.terms = terms
+        self.credits = credits
 
 @dataclass
 class TrackState:
@@ -17,6 +24,67 @@ class TrackState:
     checkbox_var: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
 
 class AcademicPlanPage(ttk.Frame):
+    # Technical electives catalog
+    tech_elective_courses = [
+        Course("EEE 4215", "Biomedical Optical Spectroscopy & Imaging", "F", "3hrs"),
+        Course("EEE 4260C", "Bioelectricity", "F", "3hrs"),
+        Course("EEE 4271", "Bioelectronics", "S", "3hrs"),
+        Course("EEE 3302", "Electronics I EEE 4274", "F, S", "3hrs"),
+        Course("EEE 4314C", "Integrated Circuit Technology", "F", "3hrs"),
+        Course("EEE 4351C", "Semiconductor Devices", "F, S", "3"),
+        Course("EEE 4359", "Analog CMOS/VLSI Design", "S", "3hrs"),
+        Course("EEE 4410", "System on a Chip", "Last Sem. S 2021", "3hrs"),
+        Course("EEE 4423", "Quantum Computing & Communications", "S", "3hrs"),
+        Course("EEE 4506", "Biomedical Image Processing", "Last Sem. S 2021", "3hrs"),
+        Course("EEE 4746", "Wireless Mobile Computing & Security", "F", "3hrs"),
+        Course("EEE 4748", "Cryptography & Data Security", "S", "3hrs"),
+        Course("EEE 4774", "Data Analytics", "S", "3hrs"),
+        Course("EEL 3100", "Network Analysis and Design", "Last Sem. F 2022", "3hrs"),
+        Course("EEL 3116L", "Laboratory II", "F, S", "1hr"),
+        Course("EEL 4206L", "Electromechanical Energy System Lab", "F, S", "1hr"),
+        Course("EEL 4212", "Energy Delivery Systems", "S", "3hrs"),
+        Course("EEL 4224", "Electric Machines & Drives", "F", "3hrs"),
+        Course("EEL 4241", "Power Electronics", "S", "3hrs"),
+        Course("EEL 4251", "Power System Analysis", "F", "3hrs"),
+        Course("EEL 4252", "Power Systems II", "Last Sem. S 2021", "3hrs"),
+        Course("EEL 4271", "Power System Protection", "F", "3hrs"),
+        Course("EEL 4283", "Sustainable Energy", "Last Sem. F 2021", "3hrs"),
+        Course("EEL 4420", "Radio Freq Microwave Measurement", "F", "3hrs"),
+        Course("EEL 4421", "RF/Microwave Circuits I", "F", "3hrs"),
+        Course("EEL 4422", "RF/Microwave Circuits II", "S", "3hrs"),
+        Course("EEL 4423C", "Wireless Circuits & Systems Design Laboratory", "F, S", "3hrs"),
+        Course("EEL 4461", "Antenna Theory", "S", "3hrs"),
+        Course("EEL 4512C", "Communication Systems", "F, S", "3"),
+        Course("EEL 4540", "Radar Systems", "F", "3hrs"),
+        Course("EEL 4567", "Electro-Optics", "Last Sem. S 2022", "3hrs"),
+        Course("EEL 4595", "Mobile and Personal Communication", "Last Sem. F 2021", "3hrs"),
+        Course("EEL 4657", "Linear Control Systems", "F, S", "3"),
+        Course("EEL 4657L", "Linear Controls Laboratory", "F, S", "1hr"),
+        Course("EEL 4663", "Applied Robotics", "F", "3hrs"),
+        Course("EEL 4680", "Applied Mechatronics", "S", "3hrs"),
+        Course("EEL 4727C", "Dig. Sig. Process. w/ Field Programmable", "S", "3hrs"),
+        Course("EEL 4740", "Embedded Systems", "S", "3hrs"),
+        Course("EEL 4743L", "Microprocessor Laboratory", "F", "1hr"),
+        Course("EEL 4744", "Microprocessor Principles & Applications", "F", "3hrs"),
+        Course("EEL 4756", "Digital Signal Processing", "F", "3hrs"),
+        Course("EEL 4782", "Data Networks, Systems & Security", "F, S, Sum", "3hrs"),
+        Course("EEL 4835", "Programming Design", "F, S", "3hrs"),
+        Course("EEL 4872", "AI & Security in Cyber Physical Systems", "F", "3hrs"),
+        Course("EEL 4905", "Independent Study (Credits:1)", "F, S, Su", "1hr"),
+        Course("EEL 4905", "Independent Study (Credits:2)", "F, S, Su", "2hrs"),
+        Course("EEL 4905", "Independent Study (Credits:3)", "F, S, Su", "3hrs"),
+        Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:1)", "F, S, Su", "1hr"),
+        Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:2)", "F, S, Su", "2hrs"),
+        Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:3)", "F, S, Su", "3hrs"),
+        Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:1)", "F, S, Su", "1hrs"),
+        Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:2)", "F, S, Su", "2hrs"),
+        Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:3)", "F, S, Su", "3hrs"),
+        Course("EEL 4936", "Wireless Communications Lab", "S", "3hrs"),
+        Course("EML 3022", "CAD & Engineering", "F, S, Su", "3hrs"),
+        Course("EGN 3060", "Mechatronics for Innovation", "Not Offered", "3hrs"),
+        Course("EGN 3375", "Electromechanical Systems", "F, S", "3")
+    ]
+
     def __init__(self, parent):
         super().__init__(parent)
         self.canvas = tk.Canvas(self, bg='white', height=900, width=8000)
@@ -27,6 +95,67 @@ class AcademicPlanPage(ttk.Frame):
         
         # Initialize course status dictionary
         self.course_status = {}
+        
+        # Initialize technical electives catalog
+        self.tech_elective_courses = [
+            Course("EEE 4215", "Biomedical Optical Spectroscopy & Imaging", "F", "3hrs"),
+            Course("EEE 4260C", "Bioelectricity", "F", "3hrs"),
+            Course("EEE 4271", "Bioelectronics", "S", "3hrs"),
+            Course("EEE 3302", "Electronics I EEE 4274", "F, S", "3hrs"),
+            Course("EEE 4314C", "Integrated Circuit Technology", "F", "3hrs"),
+            Course("EEE 4351C", "Semiconductor Devices", "F, S", "3"),
+            Course("EEE 4359", "Analog CMOS/VLSI Design", "S", "3hrs"),
+            Course("EEE 4410", "System on a Chip", "Last Sem. S 2021", "3hrs"),
+            Course("EEE 4423", "Quantum Computing & Communications", "S", "3hrs"),
+            Course("EEE 4506", "Biomedical Image Processing", "Last Sem. S 2021", "3hrs"),
+            Course("EEE 4746", "Wireless Mobile Computing & Security", "F", "3hrs"),
+            Course("EEE 4748", "Cryptography & Data Security", "S", "3hrs"),
+            Course("EEE 4774", "Data Analytics", "S", "3hrs"),
+            Course("EEL 3100", "Network Analysis and Design", "Last Sem. F 2022", "3hrs"),
+            Course("EEL 3116L", "Laboratory II", "F, S", "1hr"),
+            Course("EEL 4206L", "Electromechanical Energy System Lab", "F, S", "1hr"),
+            Course("EEL 4212", "Energy Delivery Systems", "S", "3hrs"),
+            Course("EEL 4224", "Electric Machines & Drives", "F", "3hrs"),
+            Course("EEL 4241", "Power Electronics", "S", "3hrs"),
+            Course("EEL 4251", "Power System Analysis", "F", "3hrs"),
+            Course("EEL 4252", "Power Systems II", "Last Sem. S 2021", "3hrs"),
+            Course("EEL 4271", "Power System Protection", "F", "3hrs"),
+            Course("EEL 4283", "Sustainable Energy", "Last Sem. F 2021", "3hrs"),
+            Course("EEL 4420", "Radio Freq Microwave Measurement", "F", "3hrs"),
+            Course("EEL 4421", "RF/Microwave Circuits I", "F", "3hrs"),
+            Course("EEL 4422", "RF/Microwave Circuits II", "S", "3hrs"),
+            Course("EEL 4423C", "Wireless Circuits & Systems Design Laboratory", "F, S", "3hrs"),
+            Course("EEL 4461", "Antenna Theory", "S", "3hrs"),
+            Course("EEL 4512C", "Communication Systems", "F, S", "3"),
+            Course("EEL 4540", "Radar Systems", "F", "3hrs"),
+            Course("EEL 4567", "Electro-Optics", "Last Sem. S 2022", "3hrs"),
+            Course("EEL 4595", "Mobile and Personal Communication", "Last Sem. F 2021", "3hrs"),
+            Course("EEL 4657", "Linear Control Systems", "F, S", "3"),
+            Course("EEL 4657L", "Linear Controls Laboratory", "F, S", "1hr"),
+            Course("EEL 4663", "Applied Robotics", "F", "3hrs"),
+            Course("EEL 4680", "Applied Mechatronics", "S", "3hrs"),
+            Course("EEL 4727C", "Dig. Sig. Process. w/ Field Programmable", "S", "3hrs"),
+            Course("EEL 4740", "Embedded Systems", "S", "3hrs"),
+            Course("EEL 4743L", "Microprocessor Laboratory", "F", "1hr"),
+            Course("EEL 4744", "Microprocessor Principles & Applications", "F", "3hrs"),
+            Course("EEL 4756", "Digital Signal Processing", "F", "3hrs"),
+            Course("EEL 4782", "Data Networks, Systems & Security", "F, S, Sum", "3hrs"),
+            Course("EEL 4835", "Programming Design", "F, S", "3hrs"),
+            Course("EEL 4872", "AI & Security in Cyber Physical Systems", "F", "3hrs"),
+            Course("EEL 4905", "Independent Study (Credits:1)", "F, S, Su", "1hr"),
+            Course("EEL 4905", "Independent Study (Credits:2)", "F, S, Su", "2hrs"),
+            Course("EEL 4905", "Independent Study (Credits:3)", "F, S, Su", "3hrs"),
+            Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:1)", "F, S, Su", "1hr"),
+            Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:2)", "F, S, Su", "2hrs"),
+            Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:3)", "F, S, Su", "3hrs"),
+            Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:1)", "F, S, Su", "1hrs"),
+            Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:2)", "F, S, Su", "2hrs"),
+            Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:3)", "F, S, Su", "3hrs"),
+            Course("EEL 4936", "Wireless Communications Lab", "S", "3hrs"),
+            Course("EML 3022", "CAD & Engineering", "F, S, Su", "3hrs"),
+            Course("EGN 3060", "Mechatronics for Innovation", "Not Offered", "3hrs"),
+            Course("EGN 3375", "Electromechanical Systems", "F, S", "3")
+        ]
         
         # Initialize track database
         self.initialize_track_database()
@@ -117,6 +246,7 @@ class AcademicPlanPage(ttk.Frame):
                 Course("EEE 4359", "Analog CMOS/VLSI Design", "S"),
                 Course("EEL 4567", "Electro-Optics", "Last Sem. S 2022"),
                 Course("EEL 3116L", "Laboratory II", "F, S")
+                
             ],
             "Wireless Circuits and Systems": [
                 Course("EEL 4420", "Radio Freq Microwave Measurement", "F"),
@@ -262,98 +392,6 @@ class AcademicPlanPage(ttk.Frame):
                         y0 + row * (box_h + v_gap)
                     )
 
-    def draw_single_course_box(self, track_state: TrackState, box_number: int, x: int, y: int):
-        """Draw a single course selection box"""
-        box_width = 220
-        box_height = 90
-        
-        # Create main box
-        box = self.canvas.create_rectangle(
-            x, y, x + box_width, y + box_height,
-            outline='black', width=2,
-            tags="course_box"
-        )
-        
-        # Determine box state and appearance
-        course = track_state.selected_courses[box_number]
-        if course:
-            # Course is selected
-            bg_color = self.COLORS['selected_box']
-            text_color = self.COLORS['selected_box_text']
-            text = f"{course.code}\n{course.name}\n{course.terms}"
-            font = ("Helvetica", 11)  # Slightly smaller font for better fit
-        else:
-            # Empty box
-            bg_color = self.COLORS['empty_box']
-            text_color = self.COLORS['empty_box_text']
-            text = f"Add {track_state.name}\nCourse"
-            font = ("Helvetica", 12, "bold")
-        
-        # Create background
-        bg = self.canvas.create_rectangle(
-            x+2, y+2, x+box_width-2, y+box_height-2,
-            fill=bg_color, outline='',
-            tags="course_box"
-        )
-        self.canvas.tag_lower(bg, box)
-        
-        # Create text
-        text_id = self.canvas.create_text(
-            x + box_width/2, y + box_height/2,
-            text=text,
-            font=font,
-            fill=text_color,
-            width=box_width-16,
-            justify='center',
-            tags="course_box"
-        )
-        
-        # Create buttons
-        if course:
-            # Info button
-            info_btn = tk.Button(
-                self.canvas,
-                text="i",
-                font=("Helvetica", 8, "bold"),
-                width=2, height=1,
-                bg=self.COLORS['info_button'],
-                fg='white',
-                command=lambda: self.show_course_info(track_state, box_number)
-            )
-            self.canvas.create_window(
-                x + 2, y + 2,
-                window=info_btn,
-                anchor='nw',
-                tags="course_box"
-            )
-            
-            # Clear button
-            clear_btn = tk.Button(
-                self.canvas,
-                text="×",
-                font=("Helvetica", 8, "bold"),
-                width=2, height=1,
-                bg=self.COLORS['clear_button'],
-                fg='white',
-                command=lambda: self.clear_course(track_state, box_number)
-            )
-            self.canvas.create_window(
-                x + box_width - 25, y + 2,
-                window=clear_btn,
-                anchor='nw',
-                tags="course_box"
-            )
-        
-        # Add click binding for empty boxes
-        if not course:
-            for item in (box, bg, text_id):
-                self.canvas.tag_bind(
-                    item,
-                    '<Button-1>',
-                    lambda e, ts=track_state, bn=box_number, cx=x, cy=y: 
-                        self.open_course_selector(ts, bn, cx, cy)
-                )
-
     def draw_empty_box(self, x: int, y: int):
         """Draw an empty box for unselected track positions"""
         box_width = 220
@@ -390,12 +428,24 @@ class AcademicPlanPage(ttk.Frame):
         # Update track state
         self.track_states[track_name].is_selected = is_selected
         
-        # Clear all selected courses if track is unchecked
+        # Clear all selected courses and their statuses if track is unchecked
         if not is_selected:
+            # Clear course selections
             self.track_states[track_name].selected_courses = [None] * 3
+            
+            # Clear course statuses for this track
+            status_keys_to_remove = []
+            for status_key in self.course_status.keys():
+                if status_key.startswith(f"{track_name} Course"):
+                    status_keys_to_remove.append(status_key)
+            
+            # Remove the identified status keys
+            for key in status_keys_to_remove:
+                del self.course_status[key]
         
         # Redraw course boxes
         self.draw_course_boxes()
+        self.update_credit_hours()  # Update credit hours when track selection changes
 
     def open_course_selector(self, track_state: TrackState, box_number: int, x: int, y: int):
         """Open the course selection dialog"""
@@ -423,18 +473,18 @@ class AcademicPlanPage(ttk.Frame):
                 
             selector.geometry(f"{window_width}x{window_height}+{window_x}+{window_y}")
             selector.grab_set()
-            selector.configure(bg=self.COLORS['unselected_box'])
+            selector.configure(bg='#E6F3FF')
 
             # Create main frame
-            main_frame = tk.Frame(selector, bg=self.COLORS['unselected_box'])
-            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+            main_frame = tk.Frame(selector, bg='#E6F3FF')
+            main_frame.pack(fill='both', expand=True)
 
             # Title
             title_label = tk.Label(
                 main_frame,
                 text=f"Choose a {track_state.name} Course:",
                 font=("Helvetica", 12, "bold"),
-                bg=self.COLORS['unselected_box']
+                bg='#E6F3FF'
             )
             title_label.pack(pady=(0, 10))
 
@@ -467,35 +517,58 @@ class AcademicPlanPage(ttk.Frame):
             tree.heading("Term", text="Term(s)")
             
             # Populate courses
-            for course in self.TRACK_DATABASE[track_state.name]:
-                tree.insert("", "end", values=(course.code, course.name, course.terms))
+            for course in self.TRACK_COURSE_DATABASES[track_state.name]:
+                tree.insert("", "end", values=(course[0], course[1], course[2]))
             
             tree.pack(side='left', fill='both', expand=True)
             tree_scroll.config(command=tree.yview)
             
-            # Buttons
-            button_frame = tk.Frame(main_frame, bg=self.COLORS['unselected_box'])
+            # Select current course if set
+            current_course = track_state.selected_courses[box_number]
+            if current_course:
+                for item in tree.get_children():
+                    if tree.item(item)['values'][0] == current_course.code:
+                        tree.selection_set(item)
+                        tree.see(item)
+                        break
+            
+            # Buttons frame
+            button_frame = tk.Frame(main_frame, bg='#E6F3FF')
             button_frame.pack(fill='x', pady=(20, 0))
             
             def select_course():
-                try:
-                    selection = tree.selection()
-                    if not selection:
-                        return
+                selection = tree.selection()
+                if not selection:
+                    return
+                
+                values = tree.item(selection[0])['values']
+                if values:
+                    # Store existing statuses before redraw
+                    existing_statuses = {}
+                    for key in list(self.course_status.keys()):
+                        if key.startswith(f"{track_state.name} Course"):
+                            existing_statuses[key] = self.course_status[key]
                     
-                    values = tree.item(selection[0])['values']
-                    if values:
-                        # Create course object
-                        course = Course(values[0], values[1], values[2])
-                        # Update track state
-                        track_state.selected_courses[box_number] = course
-                        # Redraw course boxes
-                        self.draw_course_boxes()
-                        selector.destroy()
-                except Exception as e:
-                    print(f"Error in select_course: {e}")
+                    # Create course object and update track state
+                    track_state.selected_courses[box_number] = Course(values[0], values[1], values[2])
+                    
+                    # Redraw course boxes
+                    self.draw_course_boxes()
+                    
+                    # Restore existing statuses
+                    for key, status in existing_statuses.items():
+                        self.course_status[key] = status
+                    
+                    # Set initial status for new course if not already set
+                    new_course_key = f"{track_state.name} Course {box_number+1}"
+                    if new_course_key not in self.course_status:
+                        self.course_status[new_course_key] = "Not Started"
+                    
+                    # Update credit hours
+                    self.update_credit_hours()
+                    
                     selector.destroy()
-
+            
             def cancel():
                 selector.destroy()
 
@@ -505,7 +578,7 @@ class AcademicPlanPage(ttk.Frame):
                 text="Select",
                 command=select_course,
                 font=("Helvetica", 11, "bold"),
-                bg=self.COLORS['empty_box'],
+                bg='#006747',
                 fg='white',
                 width=10,
                 relief='flat',
@@ -519,7 +592,7 @@ class AcademicPlanPage(ttk.Frame):
                 text="Cancel",
                 command=cancel,
                 font=("Helvetica", 11),
-                bg=self.COLORS['unselected_box'],
+                bg='#E6F3FF',
                 width=10
             )
             cancel_button.pack(side='right', padx=5)
@@ -529,23 +602,19 @@ class AcademicPlanPage(ttk.Frame):
             selector.bind('<Return>', lambda e: select_course())
             selector.bind('<Escape>', lambda e: cancel())
             
-            # Select current course if one exists
-            current_course = track_state.selected_courses[box_number]
-            if current_course:
-                for item in tree.get_children():
-                    if tree.item(item)['values'][0] == current_course.code:
-                        tree.selection_set(item)
-                        tree.see(item)
-                        break
-                        
         except Exception as e:
             print(f"Error opening course selector: {e}")
             return None
 
     def clear_course(self, track_state: TrackState, box_number: int):
         """Clear a selected course"""
+        # Clear the course status first
+        if f"{track_state.name} Course {box_number+1}" in self.course_status:
+            del self.course_status[f"{track_state.name} Course {box_number+1}"]
+            
         track_state.selected_courses[box_number] = None
         self.draw_course_boxes()
+        self.update_credit_hours()  # Update credit hours when clearing
 
     def show_course_info(self, track_state: TrackState, box_number: int):
         """Show detailed course information"""
@@ -1822,7 +1891,7 @@ class AcademicPlanPage(ttk.Frame):
 
         # Create main frame
         main_frame = tk.Frame(selector, bg='#E6F3FF')
-        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        main_frame.pack(fill='both', expand=True)
 
         # Title label
         title_label = tk.Label(main_frame, 
@@ -1901,7 +1970,17 @@ class AcademicPlanPage(ttk.Frame):
                 return
             values = tree.item(selection[0])['values']
             if values:
+                # Store the previous course
+                prev_course = getattr(self, f'selected_core_elective_{box_number}', None)
+                
+                # Set the new course
                 setattr(self, f'selected_core_elective_{box_number}', values[0])
+                
+                # If this is a different course than before, reset its status
+                if prev_course != values[0]:
+                    if f"Gateway Course {box_number}" in self.course_status:
+                        del self.course_status[f"Gateway Course {box_number}"]
+                
                 text_widget = getattr(self, f'core_text_{box_number}')
                 bg_item = getattr(self, f'core_bg_{box_number}', None)
                 if bg_item:
@@ -1914,12 +1993,13 @@ class AcademicPlanPage(ttk.Frame):
                                     font=("Helvetica", 13))
                 self.update_core_elective_buttons(box_number)
                 
-                # Set initial status to "Not Started"
-                box_items = [item for item in self.canvas.find_all() if self.canvas.type(item) == 'rectangle']
-                box = box_items[box_number - 1] if box_items else None
-                if box:
-                    status_btn = getattr(self, f'core_status_btn_{box_number}')
+                # Set initial status for new course
+                box = getattr(self, f'core_box_{box_number}')
+                status_btn = getattr(self, f'core_status_btn_{box_number}')
+                if prev_course != values[0]:
                     self.show_course_status_menu_default(f"Gateway Course {box_number}", box, status_btn)
+                
+                self.update_credit_hours()  # Update credit hours when course is selected
                 selector.destroy()
         
         def cancel():
@@ -1962,6 +2042,10 @@ class AcademicPlanPage(ttk.Frame):
         selector.geometry(f'{width}x{height}+{x}+{y}')
 
     def clear_core_elective_selection(self, box_number):
+        # Clear the course status first
+        if f"Gateway Course {box_number}" in self.course_status:
+            del self.course_status[f"Gateway Course {box_number}"]
+            
         setattr(self, f'selected_core_elective_{box_number}', None)
         text_widget = getattr(self, f'core_text_{box_number}')
         box = getattr(self, f'core_box_{box_number}')
@@ -1989,15 +2073,12 @@ class AcademicPlanPage(ttk.Frame):
                              font=("Helvetica", 12, "bold"),
                              fill='white')
         
-        # Clear the course status
-        if f"Gateway Course {box_number}" in self.course_status:
-            del self.course_status[f"Gateway Course {box_number}"]
-        
         # Reset box color to white
         if box:
             self.canvas.itemconfig(box, fill='')
         
         self.update_core_elective_buttons(box_number)
+        self.update_credit_hours()  # Update credit hours when clearing
 
     def show_selected_core_elective_info(self, box_number):
         course = getattr(self, f'selected_core_elective_{box_number}', None)
@@ -2209,8 +2290,12 @@ class AcademicPlanPage(ttk.Frame):
 
     def show_course_status_menu_default(self, course_code, box_id, button):
         """Set the default 'Not Started' state for a newly selected course"""
+        # Clear any existing status first
+        if course_code in self.course_status:
+            del self.course_status[course_code]
+            
         self.course_status[course_code] = "Not Started"
-        self.canvas.itemconfig(box_id, fill="#FF0000")  # Changed from #FFA100 to #FF0000
+        self.canvas.itemconfig(box_id, fill="#FF0000")  # Red for Not Started
         button.configure(text="○", bg="lightgray")
 
     def update_humanities_buttons(self):
@@ -2614,6 +2699,7 @@ class AcademicPlanPage(ttk.Frame):
         ],
         "Micro & Nano-scale Systems": [
             ("EEE 3302", "Electronics I", "F, S","3hrs"),
+            ("EEE 4314C", "Integrated Circuit Technology", "F", "3hrs"),
             ("EEE 4359", "Analog CMOS/VLSI Design", "S","3hrs"),
             ("EEL 4567", "Electro-Optics", "Last Sem. S 2022","3hrs"),
             ("EEL 3116L", "Laboratory II", "F, S","1hr"),
@@ -2658,9 +2744,11 @@ class AcademicPlanPage(ttk.Frame):
         tree_frame.pack(fill='both', expand=True)
         tree_scroll = ttk.Scrollbar(tree_frame)
         tree_scroll.pack(side='right', fill='y')
+        
         style = ttk.Style()
         style.configure("Treeview", font=("Helvetica", 11), rowheight=30)
         style.configure("Treeview.Heading", font=("Helvetica", 11, "bold"))
+        
         tree = ttk.Treeview(tree_frame, 
                            columns=("Code", "Name", "Term"),
                            show="headings",
@@ -2681,36 +2769,44 @@ class AcademicPlanPage(ttk.Frame):
             
         tree.pack(side='left', fill='both', expand=True)
         tree_scroll.config(command=tree.yview)
-        current_course = getattr(self, f'selected_{track_name.lower().replace(" ", "_")}_course_{box_number}', None)
+        
+        track_state = self.track_states[track_name]
+        current_course = track_state.selected_courses[box_number - 1]
         if current_course:
             for item in tree.get_children():
-                if tree.item(item)['values'][0] == current_course:
+                if tree.item(item)['values'][0] == current_course.code:
                     tree.selection_set(item)
                     tree.see(item)
                     break
+        
         button_frame = tk.Frame(main_frame, bg='#E6F3FF')
         button_frame.pack(fill='x', pady=(20, 0))
+        
         def set_course():
             selection = tree.selection()
             if not selection:
                 return
             values = tree.item(selection[0])['values']
             if values:
-                setattr(self, f'selected_{track_name.lower().replace(" ", "_")}_course_{box_number}', values[0])
-                text_widget = getattr(self, f'{track_name.lower().replace(" ", "_")}_text_{box_number}')
-                bg_item = getattr(self, f'{track_name.lower().replace(" ", "_")}_bg_{box_number}', None)
-                if bg_item:
-                    self.canvas.delete(bg_item)
-                    setattr(self, f'{track_name.lower().replace(" ", "_")}_bg_{box_number}', None)
-                display_text = f"{values[0]}\n{values[1]}\n{values[2]}"
-                self.canvas.itemconfig(text_widget, 
-                                    text=display_text,
-                                    fill='black',
-                                    font=("Helvetica", 13))
-                self.update_track_buttons(track_name, box_number)
+                # Store the previous course code if there was one
+                prev_course_code = track_state.selected_courses[box_number - 1].code if track_state.selected_courses[box_number - 1] else None
+                
+                # Update track state
+                track_state.selected_courses[box_number - 1] = Course(values[0], values[1], values[2])
+                
+                # If this is a different course than before, reset its status
+                if prev_course_code != values[0]:
+                    if f"{track_name} Course {box_number}" in self.course_status:
+                        del self.course_status[f"{track_name} Course {box_number}"]
+                
+                # Update display
+                self.draw_course_boxes()
+                self.update_credit_hours()  # Update credit hours when course is selected
                 selector.destroy()
+        
         def cancel():
             selector.destroy()
+        
         ok_button = tk.Button(button_frame,
                             text="Select",
                             command=set_course,
@@ -2722,6 +2818,7 @@ class AcademicPlanPage(ttk.Frame):
                             activebackground='#004F2D',
                             activeforeground='white')
         ok_button.pack(side='right', padx=5)
+        
         cancel_button = tk.Button(button_frame,
                                 text="Cancel",
                                 command=cancel,
@@ -2729,15 +2826,10 @@ class AcademicPlanPage(ttk.Frame):
                                 bg='#E6F3FF',
                                 width=10)
         cancel_button.pack(side='right', padx=5)
+        
         tree.bind('<Double-1>', lambda e: set_course())
         selector.bind('<Return>', lambda e: set_course())
         selector.bind('<Escape>', lambda e: cancel())
-        selector.update_idletasks()
-        width = selector.winfo_width()
-        height = selector.winfo_height()
-        x = (selector.winfo_screenwidth() // 2) - (width // 2)
-        y = (selector.winfo_screenheight() // 2) - (height // 2)
-        selector.geometry(f'{width}x{height}+{x}+{y}')
 
     def create_track_course_box(self, track_name, box_number, x, y, course_selected=True):
         box_width = 220
@@ -2845,12 +2937,20 @@ class AcademicPlanPage(ttk.Frame):
     def update_track_buttons(self, track_name, box_number):
         info_btn = getattr(self, f'{track_name.lower().replace(" ", "_")}_info_btn_{box_number}')
         clear_btn = getattr(self, f'{track_name.lower().replace(" ", "_")}_clear_btn_{box_number}')
+        status_btn = getattr(self, f'{track_name.lower().replace(" ", "_")}_status_btn_{box_number}')
+        
         if getattr(self, f'selected_{track_name.lower().replace(" ", "_")}_course_{box_number}', None):
             info_btn.config(state='normal')
             clear_btn.config(state='normal')
+            status_btn.config(state='normal')
+            # Set initial "Not Started" state if no status exists
+            box = getattr(self, f'{track_name.lower().replace(" ", "_")}_box_{box_number}')
+            if f"{track_name} Course {box_number}" not in self.course_status:
+                self.show_course_status_menu_default(f"{track_name} Course {box_number}", box, status_btn)
         else:
             info_btn.config(state='disabled')
             clear_btn.config(state='disabled')
+            status_btn.config(state='disabled', text="○", bg='lightgray')
 
     def draw_track_course_boxes(self, track_name, x, y):
         box_width = 220
@@ -2866,8 +2966,8 @@ class AcademicPlanPage(ttk.Frame):
 
     def draw_tech_electives(self):
         # Position for technical electives - moved further right
-        tech_start_x = 4400 # Moved 300 pixels right (from 3500)
-        tech_start_y = 230   # Keeping same vertical position
+        tech_start_x = 4400
+        tech_start_y = 230
         box_width = 220
         box_height = 90
         tech_gap = 40
@@ -2885,8 +2985,8 @@ class AcademicPlanPage(ttk.Frame):
             self.create_tech_elective_box(i+1, x, y)
 
         # Draw Design Courses section
-        design_start_x = tech_start_x  # Same x as tech electives
-        design_start_y = tech_start_y + 2 * (box_height + tech_gap) +  0# Below tech electives with some spacing
+        design_start_x = tech_start_x
+        design_start_y = tech_start_y + 2 * (box_height + tech_gap)
 
         # Draw Design section title
         self.canvas.create_text(design_start_x + box_width/2-35, design_start_y - 12,
@@ -2948,18 +3048,178 @@ class AcademicPlanPage(ttk.Frame):
         self.show_course_status_menu_default("EEL 4914", design2_box, self.status_btn_design2)
 
         # Draw Credit Hours text - positioned to the right of Design boxes
-        credit_x = design2_x + box_width + tech_gap + 40  # Further right of Design 2 box
-        credit_y = design_start_y + box_height/2  # Vertically centered with design boxes
+        credit_x = design2_x + box_width + tech_gap + 40
+        credit_y = design_start_y + box_height/2 - 20  # Adjusted y position up slightly
+        
+        # Create text items with tags for updating later
         self.canvas.create_text(
-            credit_x, credit_y,
-            text="Total Elective Hours (has to be 43 or higher):",
+            credit_x-5, credit_y,
+            text="Total Elective Hours:",
             font=("Helvetica", 14, "bold"),
             justify='left',
-            anchor='w'
+            anchor='w',
+            tags="total_hours_label"
         )
+        
+        # Add the actual hours count below the label
+        self.total_hours_text = self.canvas.create_text(
+            credit_x + 200, credit_y,
+            text="0",
+            font=("Helvetica", 14),
+            justify='left',
+            anchor='w',
+            tags="total_hours_value"
+        )
+        
+        # Add completed hours label and value
+        self.canvas.create_text(
+            credit_x-5, credit_y + 30,  # 30 pixels below total hours
+            text="Completed Elective Hours: ",
+            font=("Helvetica", 14, "bold"),
+            justify='left',
+            anchor='w',
+            tags="completed_hours_label"
+        )
+        
+        self.completed_hours_text = self.canvas.create_text(
+            credit_x + 240, credit_y + 30,  # Aligned with the number above
+            text="0",
+            font=("Helvetica", 14),
+            justify='left',
+            anchor='w',
+            tags="completed_hours_value"
+        )
+
+        # Update the credit hours display
+        self.update_credit_hours()
 
         # Update scroll region to ensure all elements are visible
         self.canvas.config(scrollregion=self.canvas.bbox('all'))
+
+    def get_course_credit_hours(self, course_code):
+        """Get credit hours for a course"""
+        # Check technical electives
+        for course in self.tech_elective_courses:
+            if course.code == course_code:
+                # Extract credit hours from the string (e.g., "3hrs" -> 3)
+                credit_str = course.credits
+                try:
+                    return int(credit_str.split('hr')[0].strip())
+                except (ValueError, AttributeError):
+                    return 3  # Fallback to 3 credits if parsing fails
+        
+        # Gateway courses credit hours
+        gateway_courses = {
+            "EEE 3302": 3, "EEL 4512C": 3, "EGN 3375": 3,
+            "EEL 4657": 3, "EEE 4351C": 3, "EEL 4423C": 3
+        }
+        
+        # Check gateway courses
+        if course_code in gateway_courses:
+            return gateway_courses[course_code]
+            
+        # Check track courses
+        if course_code:
+            # Search through all tracks in TRACK_COURSE_DATABASES
+            for track_courses in self.TRACK_COURSE_DATABASES.values():
+                for course in track_courses:
+                    if course[0] == course_code:  # course[0] is the course code
+                        # Extract credit hours from the string (e.g., "3hrs" -> 3)
+                        credit_str = course[3]  # course[3] is the credit hours field
+                        try:
+                            return int(credit_str.split('hr')[0].strip())
+                        except (ValueError, AttributeError):
+                            return 3  # Fallback to 3 credits if parsing fails
+            return 3  # Default to 3 credits if course not found
+        return 0
+
+    def update_credit_hours(self):
+        """Calculate and update the display of total and completed credit hours"""
+        total_hours = 0
+        completed_hours = 0
+        
+        # Count track courses
+        for track_name, track_state in self.track_states.items():
+            if track_state.is_selected:
+                for i, course in enumerate(track_state.selected_courses):
+                    if course:
+                        credits = self.get_course_credit_hours(course.code)
+                        total_hours += credits
+                        if self.course_status.get(f"{track_name} Course {i+1}") == "Complete":
+                            completed_hours += credits
+        
+        # Count gateway courses
+        for i in range(1, 5):  # 4 gateway courses
+            course = getattr(self, f'selected_core_elective_{i}', None)
+            if course:
+                credits = self.get_course_credit_hours(course)
+                total_hours += credits
+                if self.course_status.get(f"Gateway Course {i}") == "Complete":
+                    completed_hours += credits
+        
+        # Count technical electives
+        for i in range(1, 9):  # 8 technical electives
+            course = getattr(self, f'selected_tech_elective_{i}', None)
+            if course:
+                credits = self.get_course_credit_hours(course)
+                total_hours += credits
+                if self.course_status.get(f"Technical Elective {i}") == "Complete":
+                    completed_hours += credits
+        
+        # Update the display
+        self.canvas.itemconfig(self.total_hours_text, text=str(total_hours))
+        self.canvas.itemconfig(self.completed_hours_text, text=str(completed_hours))
+
+    def show_course_status_menu(self, event, course_code, box_id, button):
+        """Show the status menu for course status"""
+        # Don't show menu if button is disabled
+        if button['state'] == 'disabled':
+            return
+            
+        menu = tk.Menu(self, tearoff=0)
+        
+        def set_status(status):
+            self.course_status[course_code] = status
+            # Store current text and font
+            text_items = self.canvas.find_overlapping(*self.canvas.coords(box_id))
+            text_item = None
+            current_text = ""
+            current_font = ""
+            
+            for item in text_items:
+                if self.canvas.type(item) == "text":
+                    text_item = item
+                    break
+            
+            if text_item:
+                current_text = self.canvas.itemcget(text_item, "text")
+                current_font = self.canvas.itemcget(text_item, "font")
+            
+            # Update box appearance based on status
+            if status == "Complete":
+                self.canvas.itemconfig(box_id, fill="#90EE90")  # Light green
+                button.configure(text="✓", bg="#90EE90")
+            elif status == "In Progress":
+                self.canvas.itemconfig(box_id, fill="#FFD700")  # Gold
+                button.configure(text="...", bg="#FFD700")
+            else:  # Not Started
+                self.canvas.itemconfig(box_id, fill="#FF0000")  # Red
+                button.configure(text="○", bg="lightgray")
+                
+            # Restore text if it was found
+            if text_item:
+                self.canvas.itemconfig(text_item, text=current_text, font=current_font)
+                self.canvas.tag_raise(text_item)
+            
+            # Update credit hours after status change
+            self.update_credit_hours()
+
+        menu.add_command(label="Complete", command=lambda: set_status("Complete"))
+        menu.add_command(label="In Progress", command=lambda: set_status("In Progress"))
+        menu.add_command(label="Not Started", command=lambda: set_status("Not Started"))
+        
+        # Display the menu at button position
+        menu.post(event.x_root, event.y_root)
 
     def create_tech_elective_box(self, box_number, x, y):
         box_width = 220
@@ -3053,7 +3313,7 @@ class AcademicPlanPage(ttk.Frame):
         
         # Create Treeview
         tree = ttk.Treeview(tree_frame, 
-                           columns=("Code", "Name", "Credits"),
+                           columns=("Code", "Name", "Term", "Credits"),
                            show="headings",
                            height=6,
                            selectmode="browse",
@@ -3062,30 +3322,79 @@ class AcademicPlanPage(ttk.Frame):
         # Configure columns
         tree.column("Code", width=120, anchor="center")
         tree.column("Name", width=250, anchor="w")
+        tree.column("Term", width=100, anchor="center")
         tree.column("Credits", width=80, anchor="center")
         
         # Configure headings
         tree.heading("Code", text="Course Code")
         tree.heading("Name", text="Course Name")
+        tree.heading("Term", text="Term(s)")
         tree.heading("Credits", text="Credits")
         
         # Technical electives data
-        tech_electives = [
-            ("EEL 3003", "Introduction to Electrical Engineering", "3"),
-            ("EEL 3111C", "Circuits I", "4"),
-            ("EEL 3112", "Circuits II", "3"),
-            ("EEL 3135", "Signals and Systems", "3"),
-            ("EEL 3303", "Electronics I", "3"),
-            ("EEL 3472", "Electromagnetic Fields", "3"),
-            ("EEL 3705", "Digital Logic Design", "3"),
-            ("EEL 3705L", "Digital Logic Design Lab", "1"),
-            ("EEL 3801", "Engineering Programming", "3"),
-            ("EEL 3801L", "Engineering Programming Lab", "1")
+        self.tech_elective_courses = [
+            Course("EEE 4215", "Biomedical Optical Spectroscopy & Imaging", "F", "3hrs"),
+            Course("EEE 4260C", "Bioelectricity", "F", "3hrs"),
+            Course("EEE 4271", "Bioelectronics", "S", "3hrs"),
+            Course("EEE 3302", "Electronics I EEE 4274", "F, S", "3hrs"),
+            Course("EEE 4314C", "Integrated Circuit Technology", "F", "3hrs"),
+            Course("EEE 4351C", "Semiconductor Devices", "F, S", "3"),
+            Course("EEE 4359", "Analog CMOS/VLSI Design", "S", "3hrs"),
+            Course("EEE 4410", "System on a Chip", "Last Sem. S 2021", "3hrs"),
+            Course("EEE 4423", "Quantum Computing & Communications", "S", "3hrs"),
+            Course("EEE 4506", "Biomedical Image Processing", "Last Sem. S 2021", "3hrs"),
+            Course("EEE 4746", "Wireless Mobile Computing & Security", "F", "3hrs"),
+            Course("EEE 4748", "Cryptography & Data Security", "S", "3hrs"),
+            Course("EEE 4774", "Data Analytics", "S", "3hrs"),
+            Course("EEL 3100", "Network Analysis and Design", "Last Sem. F 2022", "3hrs"),
+            Course("EEL 3116L", "Laboratory II", "F, S", "1hr"),
+            Course("EEL 4206L", "Electromechanical Energy System Lab", "F, S", "1hr"),
+            Course("EEL 4212", "Energy Delivery Systems", "S", "3hrs"),
+            Course("EEL 4224", "Electric Machines & Drives", "F", "3hrs"),
+            Course("EEL 4241", "Power Electronics", "S", "3hrs"),
+            Course("EEL 4251", "Power System Analysis", "F", "3hrs"),
+            Course("EEL 4252", "Power Systems II", "Last Sem. S 2021", "3hrs"),
+            Course("EEL 4271", "Power System Protection", "F", "3hrs"),
+            Course("EEL 4283", "Sustainable Energy", "Last Sem. F 2021", "3hrs"),
+            Course("EEL 4420", "Radio Freq Microwave Measurement", "F", "3hrs"),
+            Course("EEL 4421", "RF/Microwave Circuits I", "F", "3hrs"),
+            Course("EEL 4422", "RF/Microwave Circuits II", "S", "3hrs"),
+            Course("EEL 4423C", "Wireless Circuits & Systems Design Laboratory", "F, S", "3hrs"),
+            Course("EEL 4461", "Antenna Theory", "S", "3hrs"),
+            Course("EEL 4512C", "Communication Systems", "F, S", "3"),
+            Course("EEL 4540", "Radar Systems", "F", "3hrs"),
+            Course("EEL 4567", "Electro-Optics", "Last Sem. S 2022", "3hrs"),
+            Course("EEL 4595", "Mobile and Personal Communication", "Last Sem. F 2021", "3hrs"),
+            Course("EEL 4657", "Linear Control Systems", "F, S", "3"),
+            Course("EEL 4657L", "Linear Controls Laboratory", "F, S", "1hr"),
+            Course("EEL 4663", "Applied Robotics", "F", "3hrs"),
+            Course("EEL 4680", "Applied Mechatronics", "S", "3hrs"),
+            Course("EEL 4727C", "Dig. Sig. Process. w/ Field Programmable", "S", "3hrs"),
+            Course("EEL 4740", "Embedded Systems", "S", "3hrs"),
+            Course("EEL 4743L", "Microprocessor Laboratory", "F", "1hr"),
+            Course("EEL 4744", "Microprocessor Principles & Applications", "F", "3hrs"),
+            Course("EEL 4756", "Digital Signal Processing", "F", "3hrs"),
+            Course("EEL 4782", "Data Networks, Systems & Security", "F, S, Sum", "3hrs"),
+            Course("EEL 4835", "Programming Design", "F, S", "3hrs"),
+            Course("EEL 4872", "AI & Security in Cyber Physical Systems", "F", "3hrs"),
+            Course("EEL 4905", "Independent Study (Credits:1)", "F, S, Su", "1hr"),
+            Course("EEL 4905", "Independent Study (Credits:2)", "F, S, Su", "2hrs"),
+            Course("EEL 4905", "Independent Study (Credits:3)", "F, S, Su", "3hrs"),
+            Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:1)", "F, S, Su", "1hr"),
+            Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:2)", "F, S, Su", "2hrs"),
+            Course("EEL 4915", "Advanced Undergraduate Research Experience (Credits:3)", "F, S, Su", "3hrs"),
+            Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:1)", "F, S, Su", "1hrs"),
+            Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:2)", "F, S, Su", "2hrs"),
+            Course("EEL 4935", "Special Electrical Engineering Topics I (Credits:3)", "F, S, Su", "3hrs"),
+            Course("EEL 4936", "Wireless Communications Lab", "S", "3hrs"),
+            Course("EML 3022", "CAD & Engineering", "F, S, Su", "3hrs"),
+            Course("EGN 3060", "Mechatronics for Innovation", "Not Offered", "3hrs"),
+            Course("EGN 3375", "Electromechanical Systems", "F, S", "3")
         ]
         
         # Insert courses into Treeview
-        for course in tech_electives:
-            tree.insert("", "end", values=course)
+        for course in self.tech_elective_courses:
+            tree.insert("", "end", values=(course.code, course.name, course.terms, course.credits))
         
         tree.pack(side='left', fill='both', expand=True)
         tree_scroll.config(command=tree.yview)
@@ -3109,19 +3418,37 @@ class AcademicPlanPage(ttk.Frame):
                 return
             values = tree.item(selection[0])['values']
             if values:
+                # Store the previous course
+                prev_course = getattr(self, f'selected_tech_elective_{box_number}', None)
+                
+                # Set the new course
                 setattr(self, f'selected_tech_elective_{box_number}', values[0])
+                
+                # If this is a different course than before, reset its status
+                if prev_course != values[0]:
+                    if f"Technical Elective {box_number}" in self.course_status:
+                        del self.course_status[f"Technical Elective {box_number}"]
+                
                 # Update the text and remove green background
                 text_widget = getattr(self, f'tech_text_{box_number}')
                 bg_item = getattr(self, f'tech_bg_{box_number}', None)
                 if bg_item:
                     self.canvas.delete(bg_item)
                     setattr(self, f'tech_bg_{box_number}', None)
-                display_text = f"{values[0]}\n{values[1]}\n{values[2]} hrs F, S"
+                display_text = f"{values[0]}\n{values[1]}\n{values[2]}"
                 self.canvas.itemconfig(text_widget, 
                                     text=display_text,
                                     fill='black',
                                     font=("Helvetica", 13))
                 self.update_tech_elective_buttons(box_number)
+                
+                # Set initial status for new course
+                box = getattr(self, f'tech_box_{box_number}')
+                status_btn = getattr(self, f'tech_status_btn_{box_number}')
+                if prev_course != values[0]:
+                    self.show_course_status_menu_default(f"Technical Elective {box_number}", box, status_btn)
+                
+                self.update_credit_hours()  # Update credit hours when course is selected
                 selector.destroy()
         
         def cancel():
@@ -3212,6 +3539,10 @@ class AcademicPlanPage(ttk.Frame):
             btn.pack(pady=10)
 
     def clear_tech_elective_selection(self, box_number):
+        # Clear the course status first
+        if f"Technical Elective {box_number}" in self.course_status:
+            del self.course_status[f"Technical Elective {box_number}"]
+            
         setattr(self, f'selected_tech_elective_{box_number}', None)
         text_widget = getattr(self, f'tech_text_{box_number}')
         box = getattr(self, f'tech_box_{box_number}')
@@ -3239,15 +3570,12 @@ class AcademicPlanPage(ttk.Frame):
                              font=("Helvetica", 12, "bold"),
                              fill='white')
         
-        # Clear the course status
-        if f"Technical Elective {box_number}" in self.course_status:
-            del self.course_status[f"Technical Elective {box_number}"]
-        
         # Reset box color to white
         if box:
             self.canvas.itemconfig(box, fill='')
         
         self.update_tech_elective_buttons(box_number)
+        self.update_credit_hours()  # Update credit hours when clearing
 
     def update_tech_elective_buttons(self, box_number):
         info_btn = getattr(self, f'tech_info_btn_{box_number}')
@@ -3281,53 +3609,138 @@ class AcademicPlanPage(ttk.Frame):
         """DEPRECATED: Use open_track_course_selector instead"""
         return self.open_track_course_selector(track_name, box_number, x, y, w, h)
 
-    def show_course_status_menu(self, event, course_code, box_id, button):
-        """Show the status menu for course status"""
-        # Don't show menu if button is disabled
-        if button['state'] == 'disabled':
-            return
-            
-        menu = tk.Menu(self, tearoff=0)
+    def draw_single_course_box(self, track_state: TrackState, box_number: int, x: int, y: int):
+        """Draw a single course selection box"""
+        box_width = 220
+        box_height = 90
         
-        def set_status(status):
-            self.course_status[course_code] = status
-            # Store current text and font
-            text_items = self.canvas.find_overlapping(*self.canvas.coords(box_id))
-            text_item = None
-            current_text = ""
-            current_font = ""
+        # Create main box
+        box = self.canvas.create_rectangle(
+            x, y, x + box_width, y + box_height,
+            outline='black', width=2,
+            tags="course_box"
+        )
+        
+        # Initialize status variables
+        status_symbol = "○"
+        status_bg = "lightgray"
+        bg_color = '#006747'  # USF Green default
+        text_color = 'white'  # Default text color
+        
+        # Determine box state and appearance
+        course = track_state.selected_courses[box_number]
+        if course:
+            # Course is selected
+            # Check if there's an existing status
+            status_key = f"{track_state.name} Course {box_number+1}"
+            current_status = self.course_status.get(status_key, "Not Started")
             
-            for item in text_items:
-                if self.canvas.type(item) == "text":
-                    text_item = item
-                    break
-            
-            if text_item:
-                current_text = self.canvas.itemcget(text_item, "text")
-                current_font = self.canvas.itemcget(text_item, "font")
-            
-            # Update box appearance based on status
-            if status == "Complete":
-                self.canvas.itemconfig(box_id, fill="#90EE90")  # Light green
-                button.configure(text="✓", bg="#90EE90")
-            elif status == "In Progress":
-                self.canvas.itemconfig(box_id, fill="#FFD700")  # Gold
-                button.configure(text="...", bg="#FFD700")
+            # Set colors based on status
+            if current_status == "Complete":
+                bg_color = "#90EE90"  # Light green
+                status_symbol = "✓"
+                status_bg = "#90EE90"
+            elif current_status == "In Progress":
+                bg_color = "#FFD700"  # Gold
+                status_symbol = "..."
+                status_bg = "#FFD700"
             else:  # Not Started
-                self.canvas.itemconfig(box_id, fill="#FF0000")  # Red
-                button.configure(text="○", bg="lightgray")
-                
-            # Restore text if it was found
-            if text_item:
-                self.canvas.itemconfig(text_item, text=current_text, font=current_font)
-                self.canvas.tag_raise(text_item)
-
-        menu.add_command(label="Complete", command=lambda: set_status("Complete"))
-        menu.add_command(label="In Progress", command=lambda: set_status("In Progress"))
-        menu.add_command(label="Not Started", command=lambda: set_status("Not Started"))
+                bg_color = "#FF0000"  # Red
+                status_symbol = "○"
+                status_bg = "lightgray"
+            
+            text_color = 'black'
+            text = f"{course.code}\n{course.name}\n{course.terms}"
+            font = ("Helvetica", 11)  # Slightly smaller font for better fit
+        else:
+            # Empty box
+            text = f"Add {track_state.name}\nCourse"
+            font = ("Helvetica", 12, "bold")
         
-        # Display the menu at button position
-        menu.post(event.x_root, event.y_root)
+        # Create background
+        bg = self.canvas.create_rectangle(
+            x+2, y+2, x+box_width-2, y+box_height-2,
+            fill=bg_color, outline='',
+            tags="course_box"
+        )
+        self.canvas.tag_lower(bg, box)
+        
+        # Create text
+        text_id = self.canvas.create_text(
+            x + box_width/2, y + box_height/2,
+            text=text,
+            font=font,
+            fill=text_color,
+            width=box_width-16,
+            justify='center',
+            tags="course_box"
+        )
+        
+        if course:
+            # Info button
+            info_btn = tk.Button(
+                self.canvas,
+                text="i",
+                font=("Helvetica", 8, "bold"),
+                width=2, height=1,
+                bg='#4FC3F7',
+                fg='white',
+                command=lambda: self.show_course_info(track_state, box_number)
+            )
+            self.canvas.create_window(
+                x + 2, y + 2,
+                window=info_btn,
+                anchor='nw',
+                tags="course_box"
+            )
+            
+            # Clear button
+            clear_btn = tk.Button(
+                self.canvas,
+                text="×",
+                font=("Helvetica", 8, "bold"),
+                width=2, height=1,
+                bg='#FF0000',
+                fg='white',
+                command=lambda: self.clear_course(track_state, box_number)
+            )
+            self.canvas.create_window(
+                x + box_width - 25, y + 2,
+                window=clear_btn,
+                anchor='nw',
+                tags="course_box"
+            )
+            
+            # Status button with current status
+            status_btn = tk.Button(
+                self.canvas,
+                text=status_symbol,
+                font=("Helvetica", 12, "bold"),
+                width=2, height=1,
+                bg=status_bg,
+                fg='black'
+            )
+            status_btn.bind('<Button-1>', lambda e: self.show_course_status_menu(e, f"{track_state.name} Course {box_number+1}", box, status_btn))
+            self.canvas.create_window(
+                x + box_width, y + box_height,
+                window=status_btn,
+                anchor='se',
+                tags="course_box"
+            )
+            
+            # Set initial status only if not already set
+            if f"{track_state.name} Course {box_number+1}" not in self.course_status:
+                self.show_course_status_menu_default(f"{track_state.name} Course {box_number+1}", box, status_btn)
+        
+        # Add click binding for empty boxes
+        if not course:
+            for item in (box, bg, text_id):
+                self.canvas.tag_bind(
+                    item,
+                    '<Button-1>',
+                    lambda e, ts=track_state, bn=box_number, cx=x, cy=y: 
+                        self.open_course_selector(ts, bn, cx, cy)
+                )
 
     def create_core_elective_box(self, box_number, x, y):
         box_width = 220
