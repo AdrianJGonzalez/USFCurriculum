@@ -6,51 +6,96 @@ class CourseDetailsWindow(tk.Toplevel):
     def __init__(self, parent, course_info):
         super().__init__(parent)
         self.title("Course Details")
-        self.geometry("500x400")
+        self.geometry("700x600")
         
         # Make window modal
         self.transient(parent)
         self.grab_set()
+        style = ttk.Style()
+    
+        # Background style for the window
+        style.configure('Details.TFrame', background='#a9a7a3')
         
-        # Create text widget with scrollbar
-        text_frame = ttk.Frame(self)
+        # Scrollbar style
+        style.configure('Details.Vertical.TScrollbar',
+                        troughcolor='#a9a7a3',
+                        background='#303434',
+                        arrowcolor='#303434',
+                        width=15)
+        
+        # Button style
+        style.configure('Details.TButton',
+                        background='#466069',
+                        foreground='white',
+                        font=('Helvetica', 10))
+        style.map('Details.TButton',
+                  background=[('active', '#303434')])
+        
+        # Set window background
+        self.configure(bg='#a9a7a3')
+        
+        # Create text frame
+        text_frame = ttk.Frame(self, style='Details.TFrame')
         text_frame.pack(fill='both', expand=True, padx=10, pady=10)
         
-        scrollbar = ttk.Scrollbar(text_frame)
+        # Create scrollbar
+        scrollbar = ttk.Scrollbar(text_frame, style='Details.Vertical.TScrollbar')
         scrollbar.pack(side='right', fill='y')
         
+        # Create text widget with scrollbar
         self.details_text = tk.Text(
             text_frame,
             wrap='word',
-            yscrollcommand=scrollbar.set
+            yscrollcommand=scrollbar.set,
+            bg='#CAD2D8',
+            fg='#303434',
+            font=('Helvetica', 11),
+            padx=10,
+            pady=10
         )
         self.details_text.pack(fill='both', expand=True)
         scrollbar.config(command=self.details_text.yview)
         
+        # Configure text tags for styling
+        self.details_text.tag_configure('title', font=('Helvetica', 14, 'bold'), foreground='#006747')
+        self.details_text.tag_configure('section', font=('Helvetica', 12, 'bold'), foreground='#303434')
+        self.details_text.tag_configure('content', font=('Helvetica', 11), foreground='#303434')
+        self.details_text.tag_configure('spacing', spacing1=5, spacing3=5) 
+
         # Format and display course details
-        details = f"Course: {course_info['Class Full Name']}\n\n"
-        details += f"Description:\n{course_info['Description']}\n\n"
-        details += f"Prerequisites: {parent.decode_requirement(course_info.get('Prereqs', 'N/A'))}\n"
-        details += f"Corequisites: {parent.decode_requirement(course_info.get('Coreqs', 'N/A'))}\n"
-        details += f"Credit Hours: {course_info['Credit Hours']}"
+        self.details_text.insert('end', f"{course_info['Class Full Name']}\n", ('title', 'spacing'))
+        self.details_text.insert('end', "\n", 'spacing')  
         
-        self.details_text.insert('1.0', details)
+        self.details_text.insert('end', "Description:\n", ('section', 'spacing'))
+        self.details_text.insert('end', f"{course_info['Description']}\n", ('content', 'spacing'))
+        self.details_text.insert('end', "\n", 'spacing')
+        
+        self.details_text.insert('end', "Prerequisites:\n", ('section', 'spacing'))
+        self.details_text.insert('end', f"{parent.decode_requirement(course_info.get('Prereqs', 'N/A'))}\n", ('content', 'spacing'))
+        self.details_text.insert('end', "\n", 'spacing')
+        
+        self.details_text.insert('end', "Corequisites:\n", ('section', 'spacing'))
+        self.details_text.insert('end', f"{parent.decode_requirement(course_info.get('Coreqs', 'N/A'))}\n", ('content', 'spacing'))
+        self.details_text.insert('end', "\n", 'spacing')
+        
+        self.details_text.insert('end', "Credit Hours:\n", ('section', 'spacing'))
+        self.details_text.insert('end', f"{course_info['Credit Hours']}\n", ('content', 'spacing'))
+        
+        # Disable editing
         self.details_text.config(state='disabled')
         
         # Close button
         close_button = ttk.Button(
             self,
             text="Close",
-            command=self.destroy
+            command=self.destroy,
+            style='Details.TButton'
         )
         close_button.pack(pady=10)
-
+    
 class CourseCatalogPage(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-        # Create and configure styles
-        # STYLES IN __init__
-        #################################################################################################################
         style = ttk.Style()
 
         # Controls the main content area background color (light blue/gray)
@@ -69,51 +114,42 @@ class CourseCatalogPage(ttk.Frame):
         # Controls the search entry box appearance
         style.configure('Dark.TEntry', fieldbackground='#CAD2D8', foreground='#303434')
 
-        # Controls the "Course Catalog" header appearance
         style.configure('Header.TLabel', background='#a9a7a3', foreground='#006747', font=('Helvetica', 20, 'bold'))
-        # - background: gray background
-        # - foreground: USF green text color
-        # - font: Bold Helvetica, size 20
 
         # Controls the main course list table appearance
         style.configure('Treeview', 
-            background='#CAD2D8',        # Row background color
-            fieldbackground='#CAD2D8',   # Table background color
-            rowheight=30                 # Height of each row
+            background='#CAD2D8',       
+            fieldbackground='#CAD2D8',  
+            rowheight=30                 
         )
 
         # Controls the table column headers appearance
         style.configure('Treeview.Heading', 
-            background='#a9a7a3',        # Header background color
-            foreground='#006747',        # Header text color (USF green)
-            font=('Helvetica', 12, 'bold') # Header font
+            background='#a9a7a3',    
+            foreground='#006747',       
+            font=('Helvetica', 12, 'bold')
         )
 
         # Controls the selected row appearance in the table
-        style.map('Treeview', background=[('selected', '#a9a7a3')])  # Selected row color
+        style.map('Treeview', background=[('selected', '#a9a7a3')]) 
 
         # IN create_widgets:
-        # Creates a frame for the header with matching background
         header_frame = tk.Frame(self, bg='#a9a7a3', bd=1, relief='flat')
-        # - bg: gray background
-        # - bd: border width
-        # - relief: border style
 
         # Places the header frame at the top, stretching horizontally
         header_frame.pack(fill='x')
 
         # Creates the "Course Catalog" label inside the header frame
         header = ttk.Label(
-            header_frame,                # Parent frame
-            text="Course Catalog",       # Text to display
-            style='Header.TLabel',       # Uses the style defined above
-            anchor='center',             # Centers the text
-            background='#a9a7a3'         # Matches the frame background
+            header_frame,               
+            text="Course Catalog",       
+            style='Header.TLabel',     
+            anchor='center',            
+            background='#a9a7a3'    
         )
 
         # Places the header with padding above and below
         header.pack(pady=10)
-        ########################################################################################################################
         # Create main container
         main_container = ttk.Frame(self, style='Catalog.TFrame')
         main_container.pack(fill='both', expand=True, padx=10, pady=5)
@@ -161,6 +197,12 @@ class CourseCatalogPage(ttk.Frame):
         search_entry = tk.Entry(search_frame, textvariable=self.search_var, bg='#dcdad5', fg='#303434', relief='flat', highlightthickness=1, highlightbackground='#303434', insertbackground='#303434', justify='center')
         search_entry.pack(fill='x', padx=5, pady=5)
         search_entry.bind('<KeyRelease>', self.search_courses)
+        clear_button = ttk.Button(search_frame, text="Clear Search", command=self.clear_search)
+        clear_button.pack(pady=5)
+
+        # Reset All button
+        reset_button = ttk.Button(left_panel, text="Reset All", command=self.reset_all)
+        reset_button.pack(fill='x', padx=5, pady=5)
         
         # Create right panel for course list
         right_panel = ttk.Frame(main_container, style='Catalog.TFrame')
@@ -210,7 +252,21 @@ class CourseCatalogPage(ttk.Frame):
             self.department_combo['values'] = departments
             self.department_var.set("All")
             self.update_courses()
-    
+
+    def clear_search(self):
+        self.search_var.set("")
+        self.update_courses()    
+
+    def reset_all(self):
+            # Reset University to the first option
+            if courses:
+                self.university_var.set(list(courses.keys())[0])
+                self.update_departments()  
+            # Clear the search field
+            self.search_var.set("")
+            # Refresh the course list
+            self.update_courses()
+
     def decode_requirement(self, req, parent_op=None, top_level=False):
         """
         Recursively deciphers a nested prerequisite/corequisite structure.
@@ -262,7 +318,7 @@ class CourseCatalogPage(ttk.Frame):
             return " ".join(sub_strings)
         else:
             return str(req)
-    
+            
     def update_courses(self, event=None):
         university = self.university_var.get()
         department = self.department_var.get()
@@ -319,7 +375,7 @@ class CourseCatalogPage(ttk.Frame):
 
         # Toggle the sort direction for the next click
         self.course_list.heading(col, command=lambda: self.sort_column(col, not reverse))
-    
+
     def search_courses(self, event=None):
         search_term = self.search_var.get().lower()
         
