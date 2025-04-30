@@ -6,7 +6,11 @@ import sys
 import os
 import time
 import random
-import json  # Import json for saving/loading data
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
 
 # Add the parent directory to the Python path to import courses
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -469,7 +473,7 @@ class SemesterPlanPage(ttk.Frame):
         self.drag_shadow = None
         self.highlighted_semester = None
         self.example_semesters = []  # Track example semesters
-        self.transcript_semesters = []
+        self.transcript_semesters = []  # Track transcript-loaded semesters
         self.create_widgets()
         self.load_plan()  # Load saved plan on startup
         self.winfo_toplevel().protocol("WM_DELETE_WINDOW", self.reset_on_close)
@@ -641,8 +645,7 @@ class SemesterPlanPage(ttk.Frame):
         # Create new semester column
         self.courses[semester] = []
         self.update_flowchart()
-        self.save_plan()  # Save plan after adding a semester
-        
+
     def load_example(self):
         """Load an example semester plan matching the provided flowchart, starting from Fall 2025"""
         # Clear existing example semesters first
@@ -760,7 +763,6 @@ class SemesterPlanPage(ttk.Frame):
         
         # Update the flowchart
         self.update_flowchart()
-        self.save_plan()  # Save the example plan
 
     def clear_example(self):
         """Clear only the example semesters"""
@@ -778,7 +780,7 @@ class SemesterPlanPage(ttk.Frame):
         # Update the flowchart
         self.update_flowchart()
 
-    def clear_transcript (self):
+    def clear_transcript(self):
         """Clear only the transcript-loaded semesters"""
         if not self.transcript_semesters:
             return
@@ -787,7 +789,7 @@ class SemesterPlanPage(ttk.Frame):
             if semester in self.courses:
                 del self.courses[semester]
         
-        self.transcript_semesters=[]
+        self.transcript_semesters = []
         self.update_flowchart()
 
     def add_course_dialog(self):
@@ -1108,7 +1110,6 @@ class SemesterPlanPage(ttk.Frame):
             # Update the flowchart if needed
             if need_update:
                 self.update_flowchart()
-                self.save_plan()  # Save plan after dragging
 
     def return_items_to_original_position(self):
         """Return dragged items to their original positions"""
@@ -1144,7 +1145,6 @@ class SemesterPlanPage(ttk.Frame):
             self.example_semesters = []  # Clear example semesters tracking as well
             self.transcript_semesters = [] #Clear transcript semesters tracking
             self.update_flowchart()
-            self.save_plan()  # Save plan after clearing
 
     def add_course(self, semester, course_info):
         if semester not in self.courses:
@@ -1154,7 +1154,6 @@ class SemesterPlanPage(ttk.Frame):
         course_info['is_manual'] = True
         self.courses[semester].append(course_info)
         self.update_flowchart()
-        self.save_plan()  # Save plan after adding a course
         
     def remove_course(self, semester, course_index):
         if semester in self.courses and 0 <= course_index < len(self.courses[semester]):
@@ -1166,7 +1165,6 @@ class SemesterPlanPage(ttk.Frame):
                                  icon='warning'):
                 del self.courses[semester][course_index]
                 self.update_flowchart()
-                self.save_plan()  # Save plan after removing a course
             
     def get_semester_order(self, semester):
         """Convert semester name to a sortable value"""
@@ -1389,7 +1387,6 @@ class SemesterPlanPage(ttk.Frame):
                     
         # Update the flowchart display
         self.update_flowchart()
-        self.save_plan()  # Save plan after loading from transcript
 
     def show_course_details(self, event):
         # Get the clicked item
@@ -1440,38 +1437,121 @@ class SemesterPlanPage(ttk.Frame):
         
         # Update the flowchart display
         self.update_flowchart()
-        self.save_plan()  # Save plan after adding a course
 
     def save_plan(self):
-        """Save the current semester plan to a JSON file"""
+        """Generate a PDF of the current semester plan"""
         try:
-            with open("semester_plan.json", "w") as f:
-                json.dump(self.courses, f, indent=4)
+            # Generate PDF with all semesters
+            self.generate_pdf(self.courses)
+            messagebox.showinfo("Success", "Semester plan saved to PDF!")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save semester plan: {str(e)}")
 
-    def load_plan(self):
-        """Load the semester plan from a JSON file on startup"""
+    def generate_pdf(self, courses):
+        """Generate a PDF of the semester plan with tables per semester, including total credits"""
         try:
-            # Always clear example semesters on startup to prevent persistence
-            self.example_semesters = []
-            self.transcript_semesters = []
-            if os.path.exists("semester_plan.json"):
-                with open("semester_plan.json", "r") as f:
-                    self.courses = json.load(f)
-                # Remove any example semesters from loaded courses
-                self.clear_example()
-                self.clear_transcript()
-                self.update_flowchart()
+            # Define PDF file path
+            pdf_file = "semester_plan.pdf"
+            
+            # Create PDF document
+            doc = SimpleDocTemplate(pdf_file, pagesize=letter, 
+                                  leftMargin=0.5*inch, rightMargin=0.5*inch,
+                                  topMargin=0.5*inch, bottomMargin=0.5*inch)
+            
+            # Define styles
+            styles = getSampleStyleSheet()
+            title_style = styles['Title']
+            heading_style = ParagraphStyle(
+                name='SemesterHeading',
+                parent=styles['Heading2'],
+                fontSize=14,
+                spaceAfter=12
+            )
+            
+            # Content for the PDF
+            content = []
+            
+            # Add title
+            content.append(Paragraph("Semester Plan", title_style))
+            content.append(Spacer(1, 0.2*inch))
+            
+            # If no courses, add a note
+            if not courses:
+                content.append(Paragraph("No semesters to display.", styles['Normal']))
+            else:
+                # Sort semesters chronologically
+                sorted_semesters = sorted(courses.keys(), key=self.get_semester_order)
+                
+                for semester in sorted_semesters:
+                    # Add semester heading
+                    content.append(Paragraph(semester, heading_style))
+                    
+                    # Prepare table data
+                    table_data = [[
+                        "Course Code",
+                        "Name",
+                        "Credits"
+                    ]]
+                    
+                    # Add courses for this semester
+                    total_credits = 0
+                    for course in courses[semester]:
+                        credits = course.get('credits', 0)
+                        # Handle credits as string or int, default to 0 if not a number
+                        try:
+                            credits_value = int(credits) if credits else 0
+                        except (ValueError, TypeError):
+                            credits_value = 0
+                        total_credits += credits_value
+                        
+                        table_data.append([
+                            f"{course.get('prefix', '')} {course.get('number', '')}",
+                            course.get('name', ''),
+                            str(credits_value)
+                        ])
+                    
+                    # Add total credits row
+                    table_data.append([
+                        "Total Credits",
+                        "",
+                        str(total_credits)
+                    ])
+                    
+                    # Create table
+                    table = Table(table_data)
+                    table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, -1), 10),
+                        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                        ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
+                        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        # Style the total credits row
+                        ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+                        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                    ]))
+                    
+                    # Add table to content
+                    content.append(table)
+                    content.append(Spacer(1, 0.2*inch))
+            
+            # Build the PDF
+            doc.build(content)
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to load semester plan: {str(e)}")
-            self.courses = {}  # Reset to empty if loading fails
-            self.example_semesters = []
-            self.transcript_semesters = []
+            raise Exception(f"Failed to generate PDF: {str(e)}")
+
+    def load_plan(self):
+        """Initialize an empty semester plan on startup"""
+        # Clear example and transcript semesters tracking
+        self.example_semesters = []
+        self.transcript_semesters = []
+        self.courses = {}  # Start with an empty plan
+        self.update_flowchart()
 
     def reset_on_close(self):
-        """Clear example semesters when the program closes"""
-        self.clear_example()
-        self.clear_transcript()
-        self.save_plan()    
-        self.winfo_toplevel().destroy() 
+        """Close the program without saving"""
+        self.winfo_toplevel().destroy()
