@@ -42,16 +42,10 @@ class AdvisingPage(ttk.Frame):
             font=("Helvetica", 20, 'bold'),
             foreground='#006747'
         )
-        header.grid(row=0, column=0, padx=10, pady=20, columnspan=2)
+        header.pack(pady=10)
 
-        self.main_frame.grid_columnconfigure(0, weight=1, uniform="equal")
-        self.main_frame.grid_columnconfigure(1, weight=1, uniform="equal")
-
-        left_half_frame = ttk.Frame(self.main_frame)
-        left_half_frame.grid(row=1, column=0, sticky="nsew")
-
-        self.selection_frame = ttk.Frame(left_half_frame)
-        self.selection_frame.pack(expand=True, fill='both')
+        self.selection_frame = ttk.Frame(self.main_frame)
+        self.selection_frame.pack(fill='x')
 
         college_frame = ttk.LabelFrame(self.selection_frame, text="Select Your College")
         college_frame.pack(fill='x', pady=10)
@@ -104,18 +98,33 @@ class AdvisingPage(ttk.Frame):
         instructions = ttk.Label(
             self.selection_frame,
             text="Select your college and department to access advising resources.",
-            wraplength=400,
+            wraplength=800,
             justify="center"
         )
         instructions.pack(pady=20)
 
-        self.right_half_frame = ttk.Frame(self.main_frame)
-        self.right_half_frame.grid(row=1, column=1, sticky="nsew")
-        self.advising_frame = ttk.Frame(self.right_half_frame)
+        # Scrollable Advising Section
+        canvas = tk.Canvas(self.main_frame)
+        scrollbar = ttk.Scrollbar(self.main_frame, orient="vertical", command=canvas.yview)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
-    def show_advising_page(self):
-        self.advising_frame.pack_forget()
-        self.selection_frame.pack(expand=True, fill='both')
+        self.scrollable_frame = ttk.Frame(canvas)
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas_window = canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        def resize_scrollable_frame(event):
+            canvas.itemconfig(canvas_window, width=event.width)
+
+        canvas.bind("<Configure>", resize_scrollable_frame)
+
+        self.advising_frame = self.scrollable_frame
 
     def update_departments(self, *args):
         college = self.college_var.get()
@@ -124,13 +133,11 @@ class AdvisingPage(ttk.Frame):
             self.dept_var.set('')
             self.college_btn.configure(state="normal")
             self.dept_btn.configure(state="disabled")
-            self.hide_advising()
         else:
             self.dept_dropdown['values'] = []
             self.dept_var.set('')
             self.college_btn.configure(state="disabled")
             self.dept_btn.configure(state="disabled")
-            self.hide_advising()
 
     def update_link(self, *args):
         dept = self.dept_var.get()
@@ -139,35 +146,44 @@ class AdvisingPage(ttk.Frame):
             self.dept_btn.configure(state="normal")
         else:
             self.dept_btn.configure(state="disabled")
-            self.hide_advising()
 
     def display_advisor_info(self):
         for widget in self.advising_frame.winfo_children():
             widget.destroy()
 
-        advisor_label = ttk.Label(
-            self.advising_frame,
-            text="Electrical Engineering Advisor Info",
-            font=("Helvetica", 16),
-            foreground="#006747"
-        )
-        advisor_label.pack(pady=10)
+        ttk.Label(self.scrollable_frame, text="Dear Students,", font=("Helvetica", 14), justify="center").pack(pady=(10, 5), anchor="center")
+        ttk.Label(self.advising_frame, text="\nIf you have submitted your ULDP (Upper-Level Degree Progression) form, it has been processed & accepted, and you would like to book an advising appointment - you've come to the right place. You have multiple options available to you for booking an appointment.", wraplength=900, justify="left").pack(pady=(10, 20))
 
-        container = ttk.Frame(self.advising_frame)
-        container.pack(pady=10, expand=True, fill='both')
+        ttk.Label(self.advising_frame, text="WALK-IN HOURS (Updated for Spring 2025):", font=("Helvetica", 12, "bold"), justify="center").pack()
+        walkin_points = [
+            "Location: Main EE Office (ENB 379)",
+            "Time: 10 AM- 4 PM on Mondays and Wednesdays",
+            "First-come-first-serve basis",
+            "Walk-in hours begin Monday, Jan 28th"
+        ]
+        for point in walkin_points:
+            ttk.Label(self.advising_frame, text=f"• {point}", font=("Helvetica", 10, "bold"), justify="left").pack(anchor="center")
 
-        left = ttk.Frame(container)
-        left.pack(side='left', expand=True, fill='both', padx=10)
+        ttk.Label(self.advising_frame, text="\n**** IMPORTANT: These days are updates for Spring - they used to be Tuesday/Thursday - please note the new days! ****", wraplength=900, justify="center").pack(pady=(20, 10))
+        ttk.Label(self.advising_frame, text="ONLINE APPOINTMENTS:", font=("Helvetica", 12, "bold"), justify="center").pack()
+        online_points = [
+            "Book using the Calendly links below",
+            "If you don't see available slots, use walk-in hours",
+            "After booking, you'll receive a Microsoft Teams meeting invitation",
+            "Choose ONE slot only"
+        ]
+        for point in online_points:
+            ttk.Label(self.advising_frame, text=f"• {point}", font=("Helvetica", 10, "bold"), justify="left").pack(anchor="center")
 
-        right = ttk.Frame(container)
-        right.pack(side='left', expand=True, fill='both', padx=10)
+        ttk.Label(self.advising_frame, text="\nRemember: Once confirmed, you will receive a calendar invitation for your Teams meeting on or before your scheduled appointment.", wraplength=900, justify="center").pack(pady=(10, 10))
 
-        self.create_advisor_block(left, "uysal.png", "Ismail Uysal", "Undergraduate Program Director", "https://calendly.com/iuysal/advising?month=2025-04")
-        self.create_advisor_block(right, "amy.png", "Amy Lyn Medicielo", "Undergraduate Program Specialist", "https://calendly.com/amedicielo/usf-advising-meeting")
+        self.create_advisor_block("uysal.png", "Ismail Uysal", "Undergraduate Program Director", "https://calendly.com/iuysal/advising?month=2025-04")
+        self.create_advisor_block("amy.png", "Amy Lyn Medicielo", "Undergraduate Program Specialist", "https://calendly.com/amedicielo/usf-advising-meeting")
 
-        self.advising_frame.pack(expand=True, fill="both")
+    def create_advisor_block(self, img_file, name, title, link):
+        frame = ttk.Frame(self.advising_frame)
+        frame.pack(pady=10, fill='x')
 
-    def create_advisor_block(self, frame, img_file, name, title, link):
         try:
             img = Image.open(img_file).resize((200, 200))
             img_tk = ImageTk.PhotoImage(img)
@@ -177,26 +193,14 @@ class AdvisingPage(ttk.Frame):
         except Exception as e:
             print(f"Error loading {img_file}: {e}")
 
-        name_label = ttk.Label(frame, text=name, font=("Helvetica", 14, 'bold'), foreground="#006747")
-        name_label.pack(pady=2)
-
-        title_label = ttk.Label(frame, text=title, font=("Helvetica", 12), foreground="#006747")
-        title_label.pack(pady=2)
-
-        button = ttk.Button(frame, text="Schedule Appointment", command=lambda: webbrowser.open(link))
-        button.pack(pady=5)
-
-    def open_schedule_appointment(self):
-        webbrowser.open("https://calendly.com/iuysal/advising?month=2025-04")
-
-    def hide_advising(self):
-        self.advising_frame.pack_forget()
-        self.selection_frame.pack(expand=True, fill='both')
+        ttk.Label(frame, text=name, font=("Helvetica", 14, 'bold'), foreground="#006747").pack(pady=2)
+        ttk.Label(frame, text=title, font=("Helvetica", 12), foreground="#006747").pack(pady=2)
+        ttk.Button(frame, text="Schedule Appointment", command=lambda: webbrowser.open(link)).pack(pady=5)
 
     def open_college_page(self):
         college = self.college_var.get()
         if college in self.colleges:
-            webbrowser.open(self.colleges[college]['url'])
+            webbrowser.open(self.colleges[college]["url"])
 
     def open_dept_page(self):
         college = self.college_var.get()
