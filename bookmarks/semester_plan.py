@@ -469,6 +469,7 @@ class SemesterPlanPage(ttk.Frame):
         self.drag_shadow = None
         self.highlighted_semester = None
         self.example_semesters = []  # Track example semesters
+        self.transcript_semesters = []
         self.create_widgets()
         self.load_plan()  # Load saved plan on startup
         self.winfo_toplevel().protocol("WM_DELETE_WINDOW", self.reset_on_close)
@@ -776,7 +777,18 @@ class SemesterPlanPage(ttk.Frame):
         
         # Update the flowchart
         self.update_flowchart()
-        self.save_plan()  # Save plan after clearing example
+
+    def clear_transcript (self):
+        """Clear only the transcript-loaded semesters"""
+        if not self.transcript_semesters:
+            return
+        
+        for semester in self.transcript_semesters:
+            if semester in self.courses:
+                del self.courses[semester]
+        
+        self.transcript_semesters=[]
+        self.update_flowchart()
 
     def add_course_dialog(self):
         if not self.courses:
@@ -1130,6 +1142,7 @@ class SemesterPlanPage(ttk.Frame):
         if messagebox.askyesno("Clear Plan", "Are you sure you want to clear the entire semester plan?"):
             self.courses = {}
             self.example_semesters = []  # Clear example semesters tracking as well
+            self.transcript_semesters = [] #Clear transcript semesters tracking
             self.update_flowchart()
             self.save_plan()  # Save plan after clearing
 
@@ -1341,7 +1354,8 @@ class SemesterPlanPage(ttk.Frame):
         if not transcript_data:
             messagebox.showerror("Error", "No transcript data provided!")
             return
-            
+
+        self.clear_transcript()    
         # Clear existing courses
         self.courses = {}
         
@@ -1356,7 +1370,9 @@ class SemesterPlanPage(ttk.Frame):
             # Create semester if it doesn't exist
             if semester_name not in self.courses:
                 self.courses[semester_name] = []
-                
+                if semester_name not in self.transcript_semesters:
+                    self.transcript_semesters.append(semester_name)
+
             # Format course data to match expected structure
             course_data = {
                 "prefix": course.get('Department', ''),
@@ -1431,8 +1447,6 @@ class SemesterPlanPage(ttk.Frame):
         try:
             with open("semester_plan.json", "w") as f:
                 json.dump(self.courses, f, indent=4)
-            # Optional: Show a confirmation message
-            # messagebox.showinfo("Success", "Semester plan saved successfully!")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save semester plan: {str(e)}")
 
@@ -1441,19 +1455,23 @@ class SemesterPlanPage(ttk.Frame):
         try:
             # Always clear example semesters on startup to prevent persistence
             self.example_semesters = []
+            self.transcript_semesters = []
             if os.path.exists("semester_plan.json"):
                 with open("semester_plan.json", "r") as f:
                     self.courses = json.load(f)
                 # Remove any example semesters from loaded courses
                 self.clear_example()
+                self.clear_transcript()
                 self.update_flowchart()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load semester plan: {str(e)}")
             self.courses = {}  # Reset to empty if loading fails
             self.example_semesters = []
+            self.transcript_semesters = []
 
     def reset_on_close(self):
         """Clear example semesters when the program closes"""
         self.clear_example()
+        self.clear_transcript()
         self.save_plan()    
         self.winfo_toplevel().destroy() 
