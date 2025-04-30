@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from tkinter import simpledialog
 from datetime import datetime
 import sys
@@ -1439,22 +1439,31 @@ class SemesterPlanPage(ttk.Frame):
         self.update_flowchart()
 
     def save_plan(self):
-        """Generate a PDF of the current semester plan"""
+        """Prompt user to choose a location and save the semester plan as a PDF"""
         try:
-            # Generate PDF with all semesters
-            self.generate_pdf(self.courses)
-            messagebox.showinfo("Success", "Semester plan saved to PDF!")
+            # Open a file save dialog to let the user choose the location and filename
+            filepath = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")],
+                title="Save Semester Plan As",
+                initialfile="semester_plan.pdf"
+            )
+            
+            # If the user cancels the dialog, filepath will be an empty string
+            if not filepath:
+                return  # Exit the method if the user cancels
+            
+            # Generate PDF at the user-specified location
+            self.generate_pdf(self.courses, filepath)
+            messagebox.showinfo("Success", f"Semester plan saved to {filepath}!")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save semester plan: {str(e)}")
 
-    def generate_pdf(self, courses):
+    def generate_pdf(self, courses, filepath):
         """Generate a PDF of the semester plan with tables per semester, including total credits"""
         try:
-            # Define PDF file path
-            pdf_file = "semester_plan.pdf"
-            
-            # Create PDF document
-            doc = SimpleDocTemplate(pdf_file, pagesize=letter, 
+            # Create PDF document at the specified filepath
+            doc = SimpleDocTemplate(filepath, pagesize=letter, 
                                   leftMargin=0.5*inch, rightMargin=0.5*inch,
                                   topMargin=0.5*inch, bottomMargin=0.5*inch)
             
