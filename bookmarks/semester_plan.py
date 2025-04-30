@@ -1,11 +1,12 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter import simpledialog
-from tkinter import ttk
 from datetime import datetime
 import sys
 import os
 import time
+import random
+import json  # Import json for saving/loading data
 
 # Add the parent directory to the Python path to import courses
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -455,7 +456,7 @@ class SemesterPlanPage(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.courses = {}
-        self.column_width = 200
+        self.column_width = 220
         self.box_padding = 20
         self.course_height = 40
         self.drag_threshold = 5  # pixels to move before starting drag
@@ -467,8 +468,11 @@ class SemesterPlanPage(ttk.Frame):
         self.original_positions = None
         self.drag_shadow = None
         self.highlighted_semester = None
+        self.example_semesters = []  # Track example semesters
         self.create_widgets()
-        
+        self.load_plan()  # Load saved plan on startup
+        self.winfo_toplevel().protocol("WM_DELETE_WINDOW", self.reset_on_close)
+
     def create_widgets(self):
         # Configure styles
         style = ttk.Style()
@@ -504,7 +508,7 @@ class SemesterPlanPage(ttk.Frame):
         control_frame = ttk.Frame(self)
         control_frame.pack(fill='x', padx=10, pady=5)
         
-        # Semester selection frame
+        # Semester selection frame (left side)
         semester_frame = ttk.Frame(control_frame)
         semester_frame.pack(side='left', padx=5)
         
@@ -521,7 +525,7 @@ class SemesterPlanPage(ttk.Frame):
         # Year entry
         self.year_entry = ttk.Entry(semester_frame, width=6)
         self.year_entry.pack(side='left', padx=5)
-        self.year_entry.insert(0, "2024")
+        self.year_entry.insert(0, "")
         
         # Add semester button
         add_semester_btn = ttk.Button(
@@ -538,6 +542,30 @@ class SemesterPlanPage(ttk.Frame):
             command=self.clear_semester_plan
         )
         clear_btn.pack(side='left', padx=5)
+        
+        # Save plan button
+        save_btn = ttk.Button(
+            control_frame,
+            text="Save Plan",
+            command=self.save_plan
+        )
+        save_btn.pack(side='left', padx=5)
+        
+        # Example button (right side)
+        example_btn = ttk.Button(
+            control_frame,
+            text="Example",
+            command=self.load_example
+        )
+        example_btn.pack(side='right', padx=5)
+        
+        # Clear example button (right side)
+        clear_example_btn = ttk.Button(
+            control_frame,
+            text="Clear Example",
+            command=self.clear_example
+        )
+        clear_example_btn.pack(side='right', padx=5)
         
         # Create main canvas with scrollbars
         self.canvas_frame = ttk.Frame(self)
@@ -578,7 +606,7 @@ class SemesterPlanPage(ttk.Frame):
         # Initialize semester columns
         self.semester_columns = []
         self.box_height = 80  # Height for course boxes
-        self.header_height = 40  # New smaller height for semester headers
+        self.header_height = 40  # Height for semester headers
         
         # Bind mouse wheel for horizontal scrolling
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
@@ -612,7 +640,144 @@ class SemesterPlanPage(ttk.Frame):
         # Create new semester column
         self.courses[semester] = []
         self.update_flowchart()
+        self.save_plan()  # Save plan after adding a semester
         
+    def load_example(self):
+        """Load an example semester plan matching the provided flowchart, starting from Fall 2025"""
+        # Clear existing example semesters first
+        self.clear_example()
+        
+        # Define the semesters based on the flowchart (Fall 2025 to Spring 2029)
+        example_semesters = [
+            "Fall 2025", "Spring 2026",  # Year 1
+            "Fall 2026", "Spring 2027", "Summer 2027",  # Year 2
+            "Fall 2027", "Spring 2028",  # Year 3
+            "Fall 2028", "Spring 2029"  # Year 4
+        ]
+        self.example_semesters.extend(example_semesters)
+        
+        # Initialize example courses dictionary
+        example_courses = {semester: [] for semester in example_semesters}
+        
+        # Get the USF course catalog
+        usf_courses = courses["University of South Florida"]
+        
+        # Helper function to add a course to a semester
+        def add_course_to_semester(semester, dept, course_code, placeholder_name=None, placeholder_credits=None):
+            if dept in usf_courses and course_code in usf_courses[dept]:
+                course_info = usf_courses[dept][course_code]
+                course_data = {
+                    "prefix": dept,
+                    "number": course_code,
+                    "name": course_info['Class Full Name'],
+                    "credits": course_info['Credit Hours'],
+                    "is_manual": True,
+                    "college": "The University of South Florida",
+                    "is_transfer": False
+                }
+            else:
+                # Placeholder for courses not found in catalog (e.g., electives)
+                course_data = {
+                    "prefix": dept,
+                    "number": course_code,
+                    "name": placeholder_name or f"{dept} {course_code}",
+                    "credits": placeholder_credits or 3,  # Default to 3 credits if not specified
+                    "is_manual": True,
+                    "college": "The University of South Florida",
+                    "is_transfer": False
+                }
+            example_courses[semester].append(course_data)
+        
+        # Year 1: Fall 2025 (14 hrs)
+        add_course_to_semester("Fall 2025", "EGN", "3000", "Foundations of Engineering")
+        add_course_to_semester("Fall 2025", "MAC", "2281", "Calculus I")
+        add_course_to_semester("Fall 2025", "EGN", "3000L", "Foundations of Engineering Lab (Creative Thinking)")
+        add_course_to_semester("Fall 2025", "CHM", "2045", "Chemistry for Engineering")
+        add_course_to_semester("Fall 2025", "CHM", "2045L", "Chemistry for Engineering Lab")
+        add_course_to_semester("Fall 2025", "ENC", "1101", "Composition I")
+        
+        # Year 1: Spring 2026 (14 hrs)
+        add_course_to_semester("Spring 2026", "MAC", "2282", "Calculus II")
+        add_course_to_semester("Spring 2026", "PHY", "2048", "General Physics I")
+        add_course_to_semester("Spring 2026", "EEE", "3394", "Electrical Science I")
+        add_course_to_semester("Spring 2026", "CHM", "2045L", "Chemistry for Engineering Lab")  # Repeated as in flowchart
+        add_course_to_semester("Spring 2026", "PHY", "2048L", "General Physics I Lab")
+        add_course_to_semester("Spring 2026", "ENC", "1102", "Composition II")
+        
+        # Year 2: Fall 2026 (15 hrs)
+        add_course_to_semester("Fall 2026", "MAC", "2283", "Calculus III")
+        add_course_to_semester("Fall 2026", "EGN", "3433", "Modeling Analysis for Engineering")
+        add_course_to_semester("Fall 2026", "EGN", "3373", "Electrical Systems I")
+        add_course_to_semester("Fall 2026", "EGN", "3420", "Engineering Analysis")
+        add_course_to_semester("Fall 2026", "EEL", "3705", "Fundamentals of Digital Circuits")
+        
+        # Year 2: Spring 2027 (14 hrs)
+        add_course_to_semester("Spring 2027", "EGN", "3443", "Probability & Statistics for Engineering (Info & Data Lit)")
+        add_course_to_semester("Spring 2027", "ENC", "3246", "Communication for Engineering")
+        add_course_to_semester("Spring 2027", "EEL", "3472C", "Electrical Science II - Electromagnetic")
+        add_course_to_semester("Spring 2027", "EEL", "2161", "EE Computer Methods")
+        add_course_to_semester("Spring 2027", "EEL", "3705L", "Fundamentals of Digital Circuits Lab")
+        
+        # Year 2: Summer 2027 (9 hrs)
+        add_course_to_semester("Summer 2027", "EGN", "3615", "Engineering Economics (Human & Cultural Diversity)")
+        add_course_to_semester("Summer 2027", "HUM", "GENED", "St. GenEd Core Humanities Elective", 3)
+        add_course_to_semester("Summer 2027", "SOC", "GENED", "St. GenEd Core Social Science Elective", 3)
+        
+        # Year 3: Fall 2027 (15 hrs)
+        add_course_to_semester("Fall 2027", "EEL", "3115L", "Lab I (Circuits)")
+        add_course_to_semester("Fall 2027", "EGN", "3374", "Electrical Systems II")
+        add_course_to_semester("Fall 2027", "EEL", "3163C", "Computer Tools")
+        add_course_to_semester("Fall 2027", "EGS", "3070", "Professional Formation of Engineering I")
+        add_course_to_semester("Fall 2027", "EEE", "CORE", "EE Core Elective", 3)
+        
+        # Year 3: Spring 2028 (15 hrs)
+        add_course_to_semester("Spring 2028", "EEL", "4906", "EE Design I")
+        add_course_to_semester("Spring 2028", "EEL", "4102", "Signals & Systems")
+        add_course_to_semester("Spring 2028", "EEL", "4835", "Programming Design")
+        add_course_to_semester("Spring 2028", "EGS", "3071", "Professional Formation of Engineering II")
+        add_course_to_semester("Spring 2028", "EEE", "CORE", "EE Core Elective", 3)
+        
+        # Year 4: Fall 2028 (16 hrs)
+        add_course_to_semester("Fall 2028", "EEL", "4914", "EE Design I (Senior Standing)")
+        add_course_to_semester("Fall 2028", "EEE", "DESIGN", "EE Design I", 3)
+        add_course_to_semester("Fall 2028", "EEE", "TRACK", "EE Track Elective", 3)
+        add_course_to_semester("Fall 2028", "EEE", "TRACK", "EE Track Elective", 3)
+        add_course_to_semester("Fall 2028", "EEE", "TECH", "EE Technical Elective", 3)
+        add_course_to_semester("Fall 2028", "EGS", "3072", "Professional Formation of Engineering III")
+        
+        # Year 4: Spring 2029 (16 hrs)
+        add_course_to_semester("Spring 2029", "EEL", "4914", "EE Design II (Senior Standing)")  # Repeated as in flowchart
+        add_course_to_semester("Spring 2029", "EEE", "DESIGN", "EE Design II", 3)
+        add_course_to_semester("Spring 2029", "EEE", "TRACK", "EE Track Elective", 3)
+        add_course_to_semester("Spring 2029", "EEE", "TRACK", "EE Track Elective", 3)
+        add_course_to_semester("Spring 2029", "EEE", "TECH", "EE Technical Elective", 3)
+        add_course_to_semester("Spring 2029", "EEE", "TECHLAB", "EE Technical Elective Lab", 1)
+        
+        # Add the example semesters and courses to self.courses
+        for semester in example_semesters:
+            self.courses[semester] = example_courses[semester]
+        
+        # Update the flowchart
+        self.update_flowchart()
+        self.save_plan()  # Save the example plan
+
+    def clear_example(self):
+        """Clear only the example semesters"""
+        if not self.example_semesters:
+            return
+            
+        # Remove example semesters from the courses dictionary
+        for semester in self.example_semesters:
+            if semester in self.courses:
+                del self.courses[semester]
+        
+        # Clear the example semesters list
+        self.example_semesters = []
+        
+        # Update the flowchart
+        self.update_flowchart()
+        self.save_plan()  # Save plan after clearing example
+
     def add_course_dialog(self):
         if not self.courses:
             messagebox.showerror("Error", "Please add a semester first!")
@@ -931,6 +1096,7 @@ class SemesterPlanPage(ttk.Frame):
             # Update the flowchart if needed
             if need_update:
                 self.update_flowchart()
+                self.save_plan()  # Save plan after dragging
 
     def return_items_to_original_position(self):
         """Return dragged items to their original positions"""
@@ -963,8 +1129,10 @@ class SemesterPlanPage(ttk.Frame):
     def clear_semester_plan(self):
         if messagebox.askyesno("Clear Plan", "Are you sure you want to clear the entire semester plan?"):
             self.courses = {}
+            self.example_semesters = []  # Clear example semesters tracking as well
             self.update_flowchart()
-            
+            self.save_plan()  # Save plan after clearing
+
     def add_course(self, semester, course_info):
         if semester not in self.courses:
             self.courses[semester] = []
@@ -973,6 +1141,7 @@ class SemesterPlanPage(ttk.Frame):
         course_info['is_manual'] = True
         self.courses[semester].append(course_info)
         self.update_flowchart()
+        self.save_plan()  # Save plan after adding a course
         
     def remove_course(self, semester, course_index):
         if semester in self.courses and 0 <= course_index < len(self.courses[semester]):
@@ -984,6 +1153,7 @@ class SemesterPlanPage(ttk.Frame):
                                  icon='warning'):
                 del self.courses[semester][course_index]
                 self.update_flowchart()
+                self.save_plan()  # Save plan after removing a course
             
     def get_semester_order(self, semester):
         """Convert semester name to a sortable value"""
@@ -1071,7 +1241,7 @@ class SemesterPlanPage(ttk.Frame):
                     tags=('course_box', course_group_tag)
                 )
                 
-                # Course text
+                # Course text with wrapping
                 course_text = (
                     f"{course['prefix']} {course['number']}\n"
                     f"{course['name']}\n"
@@ -1086,13 +1256,15 @@ class SemesterPlanPage(ttk.Frame):
                 elif is_manual:
                     course_text += "\nManually Added"
                 
+                # Adjusted font size and added wrapping
                 text_item = self.canvas.create_text(
                     x + self.column_width/2,
                     y + self.box_height/2,
                     text=course_text,
-                    font=('Helvetica', 9),
+                    font=('Helvetica', 8),
                     justify='center',
                     fill=text_color,
+                    width=self.column_width - 10,
                     tags=('course_box', course_group_tag)
                 )
                 
@@ -1201,6 +1373,7 @@ class SemesterPlanPage(ttk.Frame):
                     
         # Update the flowchart display
         self.update_flowchart()
+        self.save_plan()  # Save plan after loading from transcript
 
     def show_course_details(self, event):
         # Get the clicked item
@@ -1251,3 +1424,36 @@ class SemesterPlanPage(ttk.Frame):
         
         # Update the flowchart display
         self.update_flowchart()
+        self.save_plan()  # Save plan after adding a course
+
+    def save_plan(self):
+        """Save the current semester plan to a JSON file"""
+        try:
+            with open("semester_plan.json", "w") as f:
+                json.dump(self.courses, f, indent=4)
+            # Optional: Show a confirmation message
+            # messagebox.showinfo("Success", "Semester plan saved successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save semester plan: {str(e)}")
+
+    def load_plan(self):
+        """Load the semester plan from a JSON file on startup"""
+        try:
+            # Always clear example semesters on startup to prevent persistence
+            self.example_semesters = []
+            if os.path.exists("semester_plan.json"):
+                with open("semester_plan.json", "r") as f:
+                    self.courses = json.load(f)
+                # Remove any example semesters from loaded courses
+                self.clear_example()
+                self.update_flowchart()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load semester plan: {str(e)}")
+            self.courses = {}  # Reset to empty if loading fails
+            self.example_semesters = []
+
+    def reset_on_close(self):
+        """Clear example semesters when the program closes"""
+        self.clear_example()
+        self.save_plan()    
+        self.winfo_toplevel().destroy() 
