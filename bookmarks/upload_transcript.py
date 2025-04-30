@@ -201,9 +201,9 @@ class TranscriptPage(ttk.Frame):
         self.canvas.configure(xscrollcommand=self.h_scrollbar.set,yscrollcommand=self.v_scrollbar.set)
         
         # Pack canvas and scrollbar
-        self.canvas.pack(side="top", fill="both", expand=True)
+        self.v_scrollbar.pack(side="right", fill="y")
         self.h_scrollbar.pack(side="bottom", fill="x")
-        self.v_scrollbar.pack(side="right", fill="x")
+        self.canvas.pack(side="left", fill="both", expand=True)
         
         # Bind mousewheel to scroll vertically
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
