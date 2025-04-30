@@ -23,7 +23,7 @@ class TrackState:
     is_selected: bool = False
     checkbox_var: tk.BooleanVar = field(default_factory=lambda: tk.BooleanVar(value=False))
 
-class AcademicPlanPage(ttk.Frame):
+class AcademicPlanPage(tk.Frame):
     # Technical electives catalog
     tech_elective_courses = [
         Course("EEE 4215", "Biomedical Optical Spectroscopy & Imaging", "F", "3hrs"),
@@ -86,12 +86,26 @@ class AcademicPlanPage(ttk.Frame):
     ]
 
     def __init__(self, parent):
-        super().__init__(parent)
-        self.canvas = tk.Canvas(self, bg='white', height=900, width=8000)
+        # Initialize frame with background color
+        super().__init__(parent, bg='#dcdad5')
+        
+        # Set canvas background to match frame
+        self.canvas = tk.Canvas(self, bg='#dcdad5', height=900, width=8500)
         self.h_scroll = ttk.Scrollbar(self, orient='horizontal', command=self.canvas.xview)
+        self.v_scroll = ttk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
+        
+        # Configure scrollbar commands
         self.canvas.configure(xscrollcommand=self.h_scroll.set)
-        self.canvas.pack(side='top', fill='both', expand=True)
-        self.h_scroll.pack(side='bottom', fill='x')
+        self.canvas.configure(yscrollcommand=self.v_scroll.set)
+        
+        # Configure grid layout
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        
+        # Place canvas and scrollbars in grid
+        self.canvas.grid(row=0, column=0, sticky='nsew')
+        self.h_scroll.grid(row=1, column=0, sticky='ew')
+        self.v_scroll.grid(row=0, column=1, sticky='ns')
         
         # Initialize course status dictionary
         self.course_status = {}
@@ -183,11 +197,11 @@ class AcademicPlanPage(ttk.Frame):
             'empty_box_text': 'white',
             'selected_box': 'white',
             'selected_box_text': 'black',
-            'unselected_box': '#E6F3FF',  # Light blue
+            'unselected_box': '#a9a7a3',  # Light blue
             'unselected_box_text': 'gray',
             'info_button': '#4FC3F7',
             'clear_button': '#FF0000',
-            'title_bg': 'lightgray'
+            'title_bg': '#a9a7a3'
         }
         
         # Track UI elements
@@ -291,6 +305,7 @@ class AcademicPlanPage(ttk.Frame):
             start_y + title_box_height/2,
             text="Select Your Track", 
             font=("Helvetica", 14, "bold"),
+            fill="#006747",
             tags="track_selection"
         )
 
@@ -313,7 +328,8 @@ class AcademicPlanPage(ttk.Frame):
                 self.canvas,
                 text=track_name,
                 variable=var,
-                bg='white',
+                bg='#dcdad5',
+                fg='black',
                 font=("Helvetica", 11),
             )
             self.canvas.create_window(
@@ -673,7 +689,11 @@ class AcademicPlanPage(ttk.Frame):
         # Group label
         group_x = 100
         group_y = 60
-        self.canvas.create_text(group_x + 200, group_y, text="               General Education Requirements", font=("Helvetica", 16, "bold"), anchor='n')
+        self.canvas.create_text(group_x + 200, group_y+10, 
+            text="               General Education Requirements", 
+            font=("Helvetica", 16, "bold"),
+            fill="#006747",
+            anchor='n')
 
         box_width = 220
         box_height = 90
@@ -928,7 +948,11 @@ class AcademicPlanPage(ttk.Frame):
         # Section label
         group_x = 700
         group_y = 40
-        self.canvas.create_text(group_x + 350, group_y+20, text="Required EE Coursework", font=("Helvetica", 16, "bold"), anchor='n')
+        self.canvas.create_text(group_x + 425, group_y+30, 
+            text="Required EE Coursework", 
+            font=("Helvetica", 16, "bold"),
+            fill="#006747",
+            anchor='n')
 
         # Constants for layout
         box_width = 220  # Increased to match first group
@@ -1045,6 +1069,25 @@ class AcademicPlanPage(ttk.Frame):
                                 window=self.status_btn_phy, anchor='se')
         # Set initial "Not Started" state
         self.show_course_status_menu_default("PHY 2048", phy_box, self.status_btn_phy)
+
+        # Add dashed line from PHY 2048 to PHY 2048L
+        self.canvas.create_line(
+            col2_left + box_width/2, col2_y + 2*col2_gap + box_height,  # Bottom middle of PHY 2048
+            col2_left + box_width/2, col2_y + 3*col2_gap,  # Top middle of PHY 2048L
+            dash=(6, 4),  # 6 pixels line, 4 pixels space
+            width=2,
+            fill='black',
+            tags="prereq_line"
+        )
+        # Add solid arrow line from EEL 3705 to EEL 3705L
+        self.canvas.create_line(
+            col2_left + box_width/2, col2_y+650,  
+            col2_left + box_width/2, col2_y+600,  
+            width=2,
+            arrow='first',  # Changed to first to point upward
+            fill='black',
+            tags="prereq_arrow"
+        )
 
         # Row 4: PHY 2048L
         phyl_box = self.canvas.create_rectangle(col2_left, col2_y + 3*col2_gap, col2_left + box_width, col2_y + 3*col2_gap + box_height, outline='black', width=2)
@@ -1267,6 +1310,29 @@ class AcademicPlanPage(ttk.Frame):
         # Set initial "Not Started" state
         self.show_course_status_menu_default("MAC 2282/2312", mac2_box, self.status_btn_mac2)
 
+        # Row 3: EGN 3443
+        egn3443_box = self.canvas.create_rectangle(col3_left, col3_y + 2*col3_gap, col3_left + box_width, col3_y + 2*col3_gap + box_height, outline='black', width=2)
+        egn3443_text = self.canvas.create_text(
+            col3_left + box_width/2,
+            col3_y + 2*col3_gap + box_height/2,
+            text="EGN 3443\nProbability &\nStats for Eng\n3 hrs F, S, Su",
+            font=("Helvetica", 13),
+            justify='center'
+        )
+        info_btn_egn3443 = tk.Button(self.canvas, text="i", font=("Helvetica", 8, "bold"), 
+                                width=2, height=1, bg='#4FC3F7', fg='white',
+                                command=lambda: self.show_course_details_box('EGN', '3443'))
+        self.canvas.create_window(col3_left + 2, col3_y + 2*col3_gap + 2, window=info_btn_egn3443, anchor='nw')
+
+        # Add status button for EGN 3443
+        self.status_btn_egn3443 = tk.Button(self.canvas, text="○", font=("Helvetica", 12, "bold"), 
+                              width=2, height=1, bg='lightgray', fg='black')
+        self.status_btn_egn3443.bind('<Button-1>', lambda e: self.show_course_status_menu(e, "EGN 3443", egn3443_box, self.status_btn_egn3443))
+        self.canvas.create_window(col3_left + box_width, col3_y + 2*col3_gap + box_height, 
+                                window=self.status_btn_egn3443, anchor='se')
+        # Set initial "Not Started" state
+        self.show_course_status_menu_default("EGN 3443", egn3443_box, self.status_btn_egn3443)
+
         # Row 4: CHS 2440L / CHM 2045L
         chs_box = self.canvas.create_rectangle(col3_left, col3_y + 3*col3_gap, col3_left + box_width, col3_y + 3*col3_gap + box_height, outline='black', width=2)
         chs_text = self.canvas.create_text(
@@ -1483,6 +1549,133 @@ class AcademicPlanPage(ttk.Frame):
         # Set initial "Not Started" state
         self.show_course_status_menu_default("MAC 2283/2313", mac3_box, self.status_btn_mac3)
 
+        # Add dashed arrow from MAC 2283/2313 to EEE 3394
+        self.canvas.create_line(
+            col4_left + box_width/2, col4_y + col4_gap + box_height,  # Bottom middle of MAC 2283
+            col4_left + box_width/2, col4_y + 2*col4_gap,  # Top middle of EEE 3394
+            dash=(6, 4),  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #Chem to Materials
+        self.canvas.create_line(
+            col4_left + box_width/2, col4_y + col4_gap + box_height+130,
+            col4_left + box_width/2, col4_y + 2*col4_gap+130, 
+            arrow='first',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #Calc 2 to Prob
+        self.canvas.create_line(
+            -280+col4_left + box_width/2, col4_y + col4_gap + box_height,
+            -280+col4_left + box_width/2, col4_y + 2*col4_gap,
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #Calc 1 to Phy
+        self.canvas.create_line(
+            -560+col4_left + box_width/2, col4_y + col4_gap + box_height,
+            -560+col4_left + box_width/2, col4_y + 2*col4_gap,
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #Calc 2 to Modeling and Analysis
+        self.canvas.create_line(
+            -280+col4_left + box_width/2, col4_y + col4_gap + box_height+-130,  
+            -280+col4_left + box_width/2, col4_y + 2*col4_gap+-130, 
+            arrow='first',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P1
+        self.canvas.create_line(
+            -220+col4_left + box_width/2, col4_y + col4_gap + box_height+-90,  
+            -220+col4_left + box_width/2, col4_y + col4_gap + box_height+-110, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P2
+        self.canvas.create_line(
+            -220+col4_left + box_width/2, col4_y + col4_gap + box_height+-110,  
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+-110, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P3
+        self.canvas.create_line(
+            -220+col4_left + box_width/2, col4_y + col4_gap + box_height+-110,  
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+-110, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P4
+        self.canvas.create_line(
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+-110,  
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+70, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P5
+        self.canvas.create_line(
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+70,  
+            140+col4_left + box_width/2, col4_y + col4_gap + box_height+70, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P6
+        self.canvas.create_line(
+            140+col4_left + box_width/2, col4_y + col4_gap + box_height+70,  
+            140+col4_left + box_width/2, col4_y + col4_gap + box_height+100, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P7
+        self.canvas.create_line(
+            140+col4_left + box_width/2, col4_y + col4_gap + box_height+100,  
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+100, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P8
+        self.canvas.create_line(
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+100,  
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+220, 
+            
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        #CALC 2  TO ENG 3420 P9
+        self.canvas.create_line(
+            130+col4_left + box_width/2, col4_y + col4_gap + box_height+220,  
+            170+col4_left + box_width/2, col4_y + col4_gap + box_height+220, 
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
         # Row 3: EEE 3394
         eee_box = self.canvas.create_rectangle(col4_left, col4_y + 2*col4_gap, col4_left + box_width, col4_y + 2*col4_gap + box_height, outline='black', width=2)
         eee_text = self.canvas.create_text(
@@ -1577,6 +1770,401 @@ class AcademicPlanPage(ttk.Frame):
         # Set initial "Not Started" state
         self.show_course_status_menu_default("CHS 2440/CHM 2045", chs_chem_box, self.status_btn_chs_chem)
 
+        # Add dashed arrow from CHS 2440 to CHS 2440L
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left  # Left side of CHS 2440
+        arrow_start_y = col4_y + 3*col4_gap + box_height/2  # Middle height of CHS 2440
+        arrow_end_x = col3_left + box_width  # Right side of CHS 2440L
+        arrow_end_y = col3_y + 3*col3_gap + box_height/2  # Middle height of CHS 2440L
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            dash=(6, 4),  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from EGN 3420 to EEL 4102
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+500  #
+        arrow_start_y = col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col3_left + box_width+900 
+        arrow_end_y = col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from EE sys1 to E sys2 P1
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+810  #
+        arrow_start_y = -260+col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col3_left + box_width+900 
+        arrow_end_y = -260+col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from EE sys1 to E sys2 P2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+810  #
+        arrow_start_y = -260+col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col4_left+810
+        arrow_end_y = -390+col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+             # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from Programming in C to Comp Tools P1
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+810  #
+        arrow_start_y = 260+col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col4_left+810
+        arrow_end_y = 130+col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+             # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from Programming in C to Comp Tools P2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+810  #
+        arrow_start_y = 130+col3_y + 3*col3_gap + box_height/2  
+        arrow_end_x = col4_left+840
+        arrow_end_y = 130+col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            arrow='last',# Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from EGN 3420 to EEL 3272C Part 1
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+360  #
+        arrow_start_y = -260+col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col3_left + box_width+620 
+        arrow_end_y = -260+col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from EGN 3420 to EEL 3272C Part 2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+390  #
+        arrow_start_y = -260+col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col4_left+390 
+        arrow_end_y = col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from Materials to EMAG Part 1
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+360  #
+        arrow_start_y = -130+col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col3_left + box_width+280 
+        arrow_end_y = -130+col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from Materials to EMAG Part 2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x = col4_left+360  #
+        arrow_start_y = -260+col4_y + 3*col4_gap + box_height/2  
+        arrow_end_x = col4_left+360 
+        arrow_end_y = -130+col3_y + 3*col3_gap + box_height/2  
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x, arrow_start_y,
+            arrow_end_x, arrow_end_y,
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from Modeling and Analysis to EGN 3373
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x2 = col3_left + box_width 
+        arrow_start_y2 = -390+col3_y + 3*col3_gap + box_height/2
+        arrow_end_x2 = col4_left
+        arrow_end_y2 = -390+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x2, arrow_start_y2,
+            arrow_end_x2, arrow_end_y2,
+            dash=(6, 4),  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Add dashed arrow from EGN 3373 to Lab 1
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x2 = col3_left + box_width +280
+        arrow_start_y2 = -390+col3_y + 3*col3_gap + box_height/2
+        arrow_end_x2 = col4_left + 840
+        arrow_end_y2 = -390+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x2, arrow_start_y2,
+            arrow_end_x2, arrow_end_y2,  
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+        # Phy to Modeling and Analysis P1
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy = -280+col2_left + box_width 
+        arrow_start_yphy = -390+col3_y + 3*col3_gap + box_height/2
+        arrow_end_xphy = col3_left
+        arrow_end_yphy = -390+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy, arrow_start_yphy,
+            arrow_end_xphy, arrow_end_yphy,  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # Phy to Modeling and Analysis P2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy2 = -280+col2_left + box_width 
+        arrow_start_yphy2 = -390+col3_y + 3*col3_gap + box_height/2
+        arrow_end_xphy2 = -280+col2_left + box_width 
+        arrow_end_yphy2 = -130+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy2, arrow_start_yphy2,
+            arrow_end_xphy2, arrow_end_yphy2,  # 6 pixels line, 4 pixels space
+              # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # Phy to Modeling and Analysis P3
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy3 = -280+col2_left + box_width 
+        arrow_start_yphy3 = -130+col4_y + 3*col4_gap + box_height/2
+        arrow_end_xphy3 = col3_left-280
+        arrow_end_yphy3 = -130+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy3, arrow_start_yphy3,
+            arrow_end_xphy3, arrow_end_yphy3,  # 6 pixels line, 4 pixels space
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # Phy to Electronic Materials P1
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy4 = (col3_left-280)+220
+        arrow_start_yphy4 = -130+col4_y + 3*col4_gap + box_height/2
+        arrow_end_xphy4 = arrow_start_xphy4+25
+        arrow_end_yphy4 = -130+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy4, arrow_start_yphy4,
+            arrow_end_xphy4, arrow_end_yphy4,  # 6 pixels line, 4 pixels space
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # Phy to Electronic Materials P2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy5 = (col3_left-280)+245
+        arrow_start_yphy5 = -130+col4_y + 3*col4_gap + box_height/2
+        arrow_end_xphy5 = arrow_start_xphy5
+        arrow_end_yphy5 = -65+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy5, arrow_start_yphy5,
+            arrow_end_xphy5, arrow_end_yphy5,  # 6 pixels line, 4 pixels space
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # Phy to Electronic Materials P3
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy6 = (col3_left-280)+245
+        arrow_start_yphy6 = -65+col4_y + 3*col4_gap + box_height/2
+        arrow_end_xphy6 = arrow_start_xphy5+280
+        arrow_end_yphy6 = -65+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy6, arrow_start_yphy6,
+            arrow_end_xphy6, arrow_end_yphy6,  # 6 pixels line, 4 pixels space
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # Phy to Electronic Materials P4
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy7 = (col3_left-280)+245+280
+        arrow_start_yphy7 = -65+col4_y + 3*col4_gap + box_height/2
+        arrow_end_xphy7 = arrow_start_xphy7
+        arrow_end_yphy7 = -130+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy7, arrow_start_yphy7,
+            arrow_end_xphy7, arrow_end_yphy7,  # 6 pixels line, 4 pixels space
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+       # Phy to Electronic Materials P4
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_xphy8 = arrow_start_xphy7
+        
+        arrow_end_xphy8 = arrow_start_xphy8+35
+        
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_xphy8, arrow_end_yphy7 ,
+            arrow_end_xphy8, arrow_end_yphy7,  # 6 pixels line, 4 pixels space
+            width=2,
+            arrow='last',  # Arrow at the end
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # CALCULUS 1 to CALCULUS 2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x3 = col2_left + box_width 
+        arrow_start_y3 = -260+col3_y + 3*col3_gap + box_height/2
+        arrow_end_x3 = col3_left
+        arrow_end_y3 = -260+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x3, arrow_start_y3,
+            arrow_end_x3, arrow_end_y3,  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # CALCULUS 2 to CALCULUS 3
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x3 = col3_left + box_width 
+        arrow_start_y3 = -260+col3_y + 3*col3_gap + box_height/2
+        arrow_end_x3 = col4_left
+        arrow_end_y3 = -260+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x3, arrow_start_y3,
+            arrow_end_x3, arrow_end_y3,  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # PFE 1 to PFE 2
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x4 = col3_left + box_width 
+        arrow_start_y4 = 260+col3_y + 3*col3_gap + box_height/2
+        arrow_end_x4 = col4_left
+        arrow_end_y4 = 260+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x4, arrow_start_y4,
+            arrow_end_x4, arrow_end_y4,  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # PFE 2 to PFE 3
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x5 = col3_left + box_width +280
+        arrow_start_y5 = 260+col3_y + 3*col3_gap + box_height/2
+        arrow_end_x5 = col4_left+280
+        arrow_end_y5 = 260+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x5, arrow_start_y5,
+            arrow_end_x5, arrow_end_y5,  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
+        # Pro in C to Pro Design
+        # Calculate arrow points - from left middle of lecture box to right middle of lab box
+        arrow_start_x5 = col3_left + box_width + (280*3)
+        arrow_start_y5 = 260+col3_y + 3*col3_gap + box_height/2
+        arrow_end_x5 = col4_left+(280*3)
+        arrow_end_y5 = 260+col4_y + 3*col4_gap + box_height/2
+        
+        # Draw dashed line with arrow
+        self.canvas.create_line(
+            arrow_start_x5, arrow_start_y5,
+            arrow_end_x5, arrow_end_y5,  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"    
+        )
         # Row 5: EGN 3615
         egn_econ_box = self.canvas.create_rectangle(col4_left, col4_y + 4*col4_gap, col4_left + box_width, col4_y + 4*col4_gap + box_height, outline='black', width=2)
         egn_econ_text = self.canvas.create_text(
@@ -1781,6 +2369,27 @@ class AcademicPlanPage(ttk.Frame):
         # Set initial "Not Started" state
         self.show_course_status_menu_default("EGN 3374", egn_sys2_box, self.status_btn_egn_sys2)
 
+        # Add dashed arrow from EGN 3374 to EEL 4102 (Signals & Systems)
+        self.canvas.create_line(
+            col7_left + box_width/2, col7_y + col7_gap + box_height,  # Bottom middle of EGN 3374
+            col7_left + box_width/2, col7_y + 3*col7_gap,  # Top middle of EEL 4102
+            dash=(6, 4),  # 6 pixels line, 4 pixels space
+            arrow='last',  # Arrow at the end
+            width=2,
+            fill='black',
+            tags="prereq_arrow"
+        )
+
+        # Add dashed line from EEL 4102 to EEL 3163C (no arrow)
+        self.canvas.create_line(
+            col7_left + box_width/2, col7_y + 3*col7_gap + box_height,  # Bottom middle of EEL 4102
+            col7_left + box_width/2, col7_y + 4*col7_gap,  # Top middle of EEL 3163C
+            dash=(6, 4),  # 6 pixels line, 4 pixels space
+            width=2,
+            fill='black',
+            tags="prereq_line"
+        )
+
         # Row 4: EEL 4102
         signals_box = self.canvas.create_rectangle(col7_left, col7_y + 3*col7_gap, col7_left + box_width, col7_y + 3*col7_gap + box_height, outline='black', width=2)
         signals_text = self.canvas.create_text(
@@ -1840,6 +2449,16 @@ class AcademicPlanPage(ttk.Frame):
                                 window=self.status_btn_prog_design, anchor='se')
         # Set initial "Not Started" state
         self.show_course_status_menu_default("EEL 4835", prog_design_box, self.status_btn_prog_design)
+
+        # Add note about catalog requirement
+        self.canvas.create_text(
+            col7_left + box_width + 20, col7_y + 5*col7_gap + box_height/2,
+            text="Programming Design is NOT Required for Course Catalogs before Fall 2025",
+            font=("Helvetica", 13, "bold"),
+            justify='left',
+            anchor='w',
+            tags="prog_design_note"
+        )
 
         # Shift the rest of the grid to the right
         left = left + box_width + h_gap
@@ -2159,7 +2778,9 @@ class AcademicPlanPage(ttk.Frame):
 
         # Draw title
         self.canvas.create_text(core_start_x + box_width/2, core_start_y - 20,
-                              text="Core Electives", font=("Helvetica", 16, "bold"))
+                              text="Core Electives", 
+                              font=("Helvetica", 16, "bold"),
+                              fill="#006747")
 
         # Create 4 core elective boxes
         for i in range(4):
@@ -2974,7 +3595,10 @@ class AcademicPlanPage(ttk.Frame):
 
         # Draw title
         self.canvas.create_text(tech_start_x + box_width/2-22, tech_start_y - 12,
-                              text="Technical Electives:", font=("Helvetica", 14, "bold"))
+            text="Technical Electives:", 
+            font=("Helvetica", 14, "bold"),
+            fill="#006747",
+            tags="track_selection")
 
         # Create 8 technical elective boxes (2 rows of 4)
         for i in range(8):
@@ -2990,7 +3614,10 @@ class AcademicPlanPage(ttk.Frame):
 
         # Draw Design section title
         self.canvas.create_text(design_start_x + box_width/2-35, design_start_y - 12,
-                              text="Design Courses:", font=("Helvetica", 14, "bold"))
+            text="Design Courses:", 
+            font=("Helvetica", 14, "bold"),
+            fill="#006747",
+            tags="track_selection")
 
         # Draw Design 1 box
         design1_box = self.canvas.create_rectangle(
@@ -3090,8 +3717,90 @@ class AcademicPlanPage(ttk.Frame):
             tags="completed_hours_value"
         )
 
+        # Add catalog year requirements text - pre 2025
+        y_pos = credit_y + 70  # Base y position for first line
+        self.canvas.create_text(
+            credit_x-5, y_pos,
+            text="If your Course Catalog is before ",
+            font=("Helvetica", 14),
+            justify='left',
+            anchor='w',
+            tags="catalog_req_pre2025"
+        )
+        # Get width of first part to position the bold text
+        first_part = self.canvas.create_text(0, 0, text="If your Course Catalog is before ", font=("Helvetica", 14))
+        first_width = self.canvas.bbox(first_part)[2] - self.canvas.bbox(first_part)[0]
+        self.canvas.delete(first_part)
+        
+        self.canvas.create_text(
+            credit_x-5 + first_width, y_pos,
+            text="Fall 2025",
+            font=("Helvetica", 14, "bold"),
+            justify='left',
+            anchor='w',
+            tags="catalog_req_pre2025"
+        )
+        # Get width of bold part
+        bold_part = self.canvas.create_text(0, 0, text="Fall 2025", font=("Helvetica", 14, "bold"))
+        bold_width = self.canvas.bbox(bold_part)[2] - self.canvas.bbox(bold_part)[0]
+        self.canvas.delete(bold_part)
+        
+        self.canvas.create_text(
+            credit_x-5 + first_width + bold_width, y_pos,
+            text=": Required Elective Hours is 43",
+            font=("Helvetica", 14),
+            justify='left',
+            anchor='w',
+            tags="catalog_req_pre2025"
+        )
+
+        # Add catalog year requirements text - 2025 and later
+        y_pos = credit_y + 100  # Base y position for second line
+        self.canvas.create_text(
+            credit_x-5, y_pos,
+            text="If your Course Catalog is ",
+            font=("Helvetica", 14),
+            justify='left',
+            anchor='w',
+            tags="catalog_req_post2025"
+        )
+        # Get width of first part
+        first_part = self.canvas.create_text(0, 0, text="If your Course Catalog is ", font=("Helvetica", 14))
+        first_width = self.canvas.bbox(first_part)[2] - self.canvas.bbox(first_part)[0]
+        self.canvas.delete(first_part)
+        
+        self.canvas.create_text(
+            credit_x-5 + first_width, y_pos,
+            text="Fall 2025",
+            font=("Helvetica", 14, "bold"),
+            justify='left',
+            anchor='w',
+            tags="catalog_req_post2025"
+        )
+        # Get width of bold part
+        bold_part = self.canvas.create_text(0, 0, text="2025", font=("Helvetica", 14, "bold"))
+        bold_width = self.canvas.bbox(bold_part)[2] - self.canvas.bbox(bold_part)[0]
+        self.canvas.delete(bold_part)
+        
+        self.canvas.create_text(
+            credit_x + first_width + bold_width+30, y_pos,
+            text=" or later: Required Elective Hours is 40",
+            font=("Helvetica", 14),
+            justify='left',
+            anchor='w',
+            tags="catalog_req_post2025"
+        )
+
         # Update the credit hours display
         self.update_credit_hours()
+
+        # Add invisible element to force extra space at the right
+        rightmost_x = credit_x + 800  # Current rightmost position
+        self.canvas.create_rectangle(
+            rightmost_x, tech_start_y,
+            rightmost_x + 100, tech_start_y + 1,
+            fill='', outline='', tags="spacer"
+        )
 
         # Update scroll region to ensure all elements are visible
         self.canvas.config(scrollregion=self.canvas.bbox('all'))

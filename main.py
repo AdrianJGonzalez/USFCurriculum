@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from bookmarks.welcome import WelcomePage
+from bookmarks.pre_advising import PreAdvisingChecklistPage
 from bookmarks.semester_plan import SemesterPlanPage
 from bookmarks.course_catalog import CourseCatalogPage
 from bookmarks.academic_plan import AcademicPlanPage
@@ -42,6 +43,7 @@ class MainApplication(tk.Tk):
         
         # Create frames for each tab
         self.welcome_frame = WelcomePage(self.notebook)
+        self.pre_advising_frame = PreAdvisingChecklistPage(self.notebook)
         self.course_catalog_frame = CourseCatalogPage(self.notebook)
         self.semester_plan_frame = SemesterPlanPage(self.notebook)
         self.academic_plan_frame = AcademicPlanPage(self.notebook)
@@ -57,6 +59,7 @@ class MainApplication(tk.Tk):
         
         # Add frames to notebook in desired order
         self.notebook.add(self.welcome_frame, text="Welcome")
+        self.notebook.add(self.pre_advising_frame, text="Pre-Advising Checklist")
         self.notebook.add(self.transcript_frame, text="Upload Transcript")
         self.notebook.add(self.semester_plan_frame, text="Semester Plan")
         self.notebook.add(self.academic_plan_frame, text="Academic Plan")
